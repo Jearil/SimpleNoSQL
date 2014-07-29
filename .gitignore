@@ -24,6 +24,7 @@ proguard/
 
 # IDE Folder
 .idea/
+*.iml
 
 # =========================
 # Operating System Files
@@ -37,7 +38,8 @@ proguard/
 .LSOverride
 
 # Icon must ends with two \r.
-Icon
+Icon
+
 
 # Thumbnails
 ._*

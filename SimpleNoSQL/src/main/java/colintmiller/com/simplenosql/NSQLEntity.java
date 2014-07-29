@@ -94,7 +94,10 @@ public class NSQLEntity
     if (data.containsKey(key)) {
       try
       {
-        return (T) data.get(key);
+        T item = (T) data.get(key);
+        if (item.getClass().equals(clazz)) {
+            return item;
+        }
       } catch (ClassCastException e) {
         Log.w("NOSQLEntity", "Unable to cast class to desired type.", e);
       }

@@ -37,9 +37,9 @@ public class NSQLEntityTest extends ActivityUnitTestCase
     assertEquals(duplicate.getStringValue("name"), "NoSql");
     assertEquals(duplicate.getStringValue("id"), "different id");
     assertEquals(duplicate.getBooleanValue("someBoolean"), Boolean.FALSE);
-    assertNotSame(original.getListValue("list"), duplicate.getListValue("list"));
+    assertNull(original.getStringValue("list"));
     assertEquals(original.getListValue("list"), duplicate.getListValue("list"));
-    assertNotSame(original.getMapValue("map"), duplicate.getMapValue("map"));
+    assertNull(original.getStringValue("map"));
     assertEquals(original.getMapValue("map"), duplicate.getMapValue("map"));
   }
 
