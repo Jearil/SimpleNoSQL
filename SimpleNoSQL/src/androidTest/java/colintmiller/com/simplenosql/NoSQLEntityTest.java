@@ -18,47 +18,27 @@ public class NoSQLEntityTest extends ActivityUnitTestCase {
         super(Activity.class);
     }
 
-    public void testCloneEntity() {
-        NoSQLEntity original = new NoSQLEntity("default", "first");
-        original.setValue("name", "NoSql");
-        original.setValue("id", "different id");
-        original.setValue("someBoolean", false);
-        List<String> originalList = new ArrayList<String>();
-        originalList.add("first");
-        originalList.add("second");
-        original.setValue("list", originalList);
-        Map<String, Boolean> originalMap = new HashMap<String, Boolean>();
-        originalMap.put("first", true);
-        originalMap.put("second", false);
-        original.setValue("map", originalMap);
+    public void testJsonConversion() {
+        SampleBean testData = new SampleBean();
+        testData.setName("Colin");
+        testData.setId(1);
+        SampleBean innerData = new SampleBean();
+        innerData.setName( "Developer" );
+        innerData.setField1("Of things");
+        List<String> someList = new ArrayList<String>();
+        someList.add("item 1");
+        someList.add("item 2");
+        innerData.setListing(someList);
 
-        NoSQLEntity duplicate = original.cloneTo("change", "second");
-        assertEquals(duplicate.getStringValue("name"), "NoSql");
-        assertEquals(duplicate.getStringValue("id"), "different id");
-        assertEquals(duplicate.getBooleanValue("someBoolean"), Boolean.FALSE);
-        assertNull(original.getStringValue("list"));
-        assertEquals(original.getListValue("list"), duplicate.getListValue("list"));
-        assertNull(original.getStringValue("map"));
-        assertEquals(original.getMapValue("map"), duplicate.getMapValue("map"));
-    }
+        NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("bucket", "id");
+        entity.setData(testData);
 
-    public void testWrongType() {
-        NoSQLEntity data = new NoSQLEntity("default", "first");
-        data.setValue("string", "Some String");
-        assertNull("Should get null when asking for an integer where a String resides.", data.getIntegerValue("string"));
-    }
+        String jsonData = entity.jsonData();
 
-    public void testEntityJson() {
-        NoSQLEntity data = new NoSQLEntity("default", "first");
-        data.setValue("name", "SimpleNoSQL");
-        String json = data.jsonData();
-        assertEquals("{\"name\":\"SimpleNoSQL\"}", json);
-    }
+        NoSQLEntity<SampleBean> hydrated = new NoSQLEntity<SampleBean>("bucket", "id2");
+        hydrated.setJsonData(jsonData, SampleBean.class);
+        SampleBean waterData = hydrated.getData();
 
-    public void testDeepJson() {
-        String json = "{\"ids\":[\"ID1\",\"ID2\",\"ID3\"]}";
-        NoSQLEntity entity = new NoSQLEntity("default", "first");
-        entity.setJsonData(json);
-        assertNotNull("There should be an 'ids' list: " + entity.jsonData(), entity.getListValue("ids"));
+        assertEquals(testData, waterData);
     }
 }

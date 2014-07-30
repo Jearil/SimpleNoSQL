@@ -19,10 +19,14 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
     }
 
     public void testDeleteEntity() {
-        NoSQLEntity entity = new NoSQLEntity("delete", "first");
-        NoSQLEntity entity2 = new NoSQLEntity("delete", "second");
-        entity.setValue("id", 1);
-        entity2.setValue("id", 2);
+        NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("delete", "first");
+        NoSQLEntity<SampleBean> entity2 = new NoSQLEntity<SampleBean>("delete", "second");
+        SampleBean bean1 = new SampleBean();
+        SampleBean bean2 = new SampleBean();
+        bean1.setId(1);
+        bean2.setId(2);
+        entity.setData(bean1);
+        entity2.setData(bean2);
 
         NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext());
         saveTask.doInBackground(entity, entity2);
@@ -44,11 +48,13 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
     }
 
     public void testDeleteBucket() {
-        List<NoSQLEntity> lots = new ArrayList<NoSQLEntity>(10);
+        List<NoSQLEntity<SampleBean>> lots = new ArrayList<NoSQLEntity<SampleBean>>(10);
         for (int i = 0; i < 10; i++) {
-            NoSQLEntity entity = new NoSQLEntity("delete", "id" + i);
-            entity.setValue("id", i);
-            entity.setValue("even", i % 2 == 0);
+            NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("delete", "id" + i);
+            SampleBean bean = new SampleBean();
+            bean.setId(i);
+            bean.setExists(i % 2 == 0);
+            entity.setData(bean);
             lots.add(entity);
         }
 

@@ -52,7 +52,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void saveEntity(NoSQLEntity entity) {
+    public <T> void saveEntity(NoSQLEntity<T> entity) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(EntityEntry.COLUMN_NAME_BUCKET_ID, entity.getBucket());
@@ -73,20 +73,20 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=?", args);
     }
 
-    public List<NoSQLEntity> getEntities(String bucket, String entityId) {
+    public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz) {
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=? AND " + EntityEntry.COLUMN_NAME_ENTITY_ID + "=?";
         String[] selectionArgs = {bucket, entityId};
-        return getEntities(selection, selectionArgs);
+        return getEntities(selection, selectionArgs, clazz);
     }
 
-    public List<NoSQLEntity> getEntities(String bucket) {
+    public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz) {
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=?";
         String[] selectionArgs = {bucket};
-        return getEntities(selection, selectionArgs);
+        return getEntities(selection, selectionArgs, clazz);
     }
 
-    private List<NoSQLEntity> getEntities(String selection, String[] selectionArgs) {
-        List<NoSQLEntity> results = new ArrayList<NoSQLEntity>();
+    private <T> List<NoSQLEntity<T>> getEntities(String selection, String[] selectionArgs, Class<T> clazz) {
+        List<NoSQLEntity<T>> results = new ArrayList<NoSQLEntity<T>>();
         SQLiteDatabase db = getReadableDatabase();
 
         String[] columns = {EntityEntry.COLUMN_NAME_BUCKET_ID, EntityEntry.COLUMN_NAME_ENTITY_ID, EntityEntry.COLUMN_NAME_DATA};
@@ -98,7 +98,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
             String data = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
 
             NoSQLEntity entity = new NoSQLEntity(bucketId, entityId);
-            entity.setJsonData(data);
+            entity.setJsonData(data, clazz);
             results.add(entity);
         }
 

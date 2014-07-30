@@ -1,11 +1,8 @@
 package colintmiller.com.simplenosql;
 
 
-import android.util.Log;
 import com.google.gson.Gson;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,95 +10,19 @@ import java.util.Map;
 /**
  * A generic entity that can store any set of data. To be used with the NoSQL class.
  */
-public class NoSQLEntity {
-    private Map<String, Object> data;
+public class NoSQLEntity<T> {
+    private T data;
     private String id;
     private String bucket;
 
     public NoSQLEntity(String bucket, String id) {
+        this(bucket, id, null);
+    }
+
+    public NoSQLEntity(String bucket, String id, T data) {
         this.bucket = bucket;
         this.id = id;
-        this.data = new HashMap<String, Object>();
-    }
-
-    public void setValue(String key, String value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, Integer value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, Float value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, Double value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, Long value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, Boolean value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, Map value) {
-        data.put(key, value);
-    }
-
-    public void setValue(String key, List value) {
-        data.put(key, value);
-    }
-
-    public String getStringValue(String key) {
-        return getValue(key, String.class);
-    }
-
-    public Integer getIntegerValue(String key) {
-        return getValue(key, Integer.class);
-    }
-
-    public Boolean getBooleanValue(String key) {
-        return getValue(key, Boolean.class);
-    }
-
-    public Float getFloatValue(String key) {
-        return getValue(key, Float.class);
-    }
-
-    public Double getDoubleValue(String key) {
-        return getValue(key, Double.class);
-    }
-
-    public Long getLongValue(String key) {
-        return getValue(key, Long.class);
-    }
-
-    public List getListValue(String key) {
-        return getValue(key, List.class);
-    }
-
-    public Map getMapValue(String key) {
-        return getValue(key, Map.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T getValue(String key, Class<T> clazz) {
-        data.get(key);
-        if (data.containsKey(key)) {
-            try {
-                T item = (T) data.get(key);
-                if (clazz.isAssignableFrom(item.getClass())) {
-                    return item;
-                }
-            } catch (ClassCastException e) {
-                Log.w("NOSQLEntity", "Unable to cast class to desired type.", e);
-            }
-        }
-        return null;
+        this.data = data;
     }
 
     public String getId() {
@@ -112,52 +33,22 @@ public class NoSQLEntity {
         return bucket;
     }
 
-    public NoSQLEntity cloneTo(String bucket, String id) {
-        NoSQLEntity entity = new NoSQLEntity(bucket, id);
-        Map<String, Object> otherData = getNestedMap(this.data);
-        entity.data = otherData;
-        return entity;
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    public T getData() {
+        return data;
     }
 
     public String jsonData() {
-        Gson gson = NoSQLGsonTools.getInstance();
+        Gson gson = new Gson();
         return gson.toJson(data);
     }
 
-    public void setJsonData(String jsonData) {
-        Gson gson = NoSQLGsonTools.getInstance();
-        data = gson.fromJson(jsonData, NoSQLGsonTools.mapType);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getNestedMap(Map<String, Object> nestedData) {
-        Map<String, Object> otherData = new HashMap<String, Object>(this.data.size());
-        for (String key : nestedData.keySet()) {
-            Object datum = nestedData.get(key);
-            otherData.put(key, processItem(datum));
-        }
-
-        return otherData;
-    }
-
-    private Collection<Object> getNestedCollection(Collection<Object> nestedCollection) {
-        Collection<Object> otherData = new ArrayList<Object>(nestedCollection.size());
-        for (Object object : nestedCollection) {
-            otherData.add(processItem(object));
-        }
-        return otherData;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object processItem(Object datum) {
-        if (datum instanceof Map) {
-            return getNestedMap((Map<String, Object>) datum);
-        } else if (datum instanceof Collection) {
-            return getNestedCollection((Collection<Object>) datum);
-        } else {
-            // All primitive wrappers (and Strings) are immutable so no copy needed.
-            return datum;
-        }
+    public void setJsonData(String jsonData, Class<? extends T> clazz) {
+        Gson gson = new Gson();
+        data = gson.fromJson(jsonData, clazz);
     }
 
 }

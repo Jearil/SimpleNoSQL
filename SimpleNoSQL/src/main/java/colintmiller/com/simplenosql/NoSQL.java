@@ -21,8 +21,8 @@ public class NoSQL
         saveTask.execute(entity);
     }
 
-    public void getEntity(String bucket, String entityId, RetrievalCallback callback) {
-        NoSQLRetrieveTask retrieveTask = new NoSQLRetrieveTask(context, callback);
+    public <T> void getEntity(String bucket, String entityId, RetrievalCallback<T> callback, Class<T> clazz) {
+        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, clazz);
         retrieveTask.execute(bucket, entityId);
     }
 
@@ -36,8 +36,8 @@ public class NoSQL
         deleteTask.execute(bucket);
     }
 
-    public void getEntities(String bucket, RetrievalCallback callback) {
-        NoSQLRetrieveTask retrieveTask = new NoSQLRetrieveTask(context, callback);
+    public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz) {
+        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, clazz);
         retrieveTask.execute(bucket);
     }
 
