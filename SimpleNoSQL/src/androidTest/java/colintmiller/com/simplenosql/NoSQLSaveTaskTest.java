@@ -14,9 +14,11 @@ import java.util.List;
  * Tests for saving entities to the DB. This includes saving a single entity or saving multiple entities.
  */
 public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
+    private GsonSerialization serialization;
 
     public NoSQLSaveTaskTest() {
         super(Activity.class);
+        serialization = new GsonSerialization();
     }
 
     public void testSaveEntity() {
@@ -26,11 +28,11 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         data.setId(1);
         entity.setData(data);
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext());
+        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
         saveTask.doInBackground(entity);
 
         assertNotNull("Activity is null when it should not have been", getInstrumentation().getTargetContext());
-        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext());
+        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();
         String[] columns = {SimpleNoSQLContract.EntityEntry.COLUMN_NAME_BUCKET_ID,
                 SimpleNoSQLContract.EntityEntry.COLUMN_NAME_ENTITY_ID, SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA};
@@ -53,10 +55,10 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
             allEntities.add(entity);
         }
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext());
+        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
         saveTask.doInBackground(allEntities.toArray(new NoSQLEntity[0]));
 
-        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext());
+        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();
         String[] columns = {SimpleNoSQLContract.EntityEntry.COLUMN_NAME_BUCKET_ID,
                 SimpleNoSQLContract.EntityEntry.COLUMN_NAME_ENTITY_ID, SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA};
@@ -71,7 +73,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         while(cursor.moveToNext()) {
             String data = cursor.getString(cursor.getColumnIndex(SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA));
             NoSQLEntity<SampleBean> bean = new NoSQLEntity<SampleBean>("bucket", "id");
-            bean.setJsonData(data, SampleBean.class);
+            bean.setData(serialization.deserialize(data, SampleBean.class));
             assertEquals(counter, bean.getData().getId());
             assertEquals(counter % 2 == 0, bean.getData().isExists());
             counter++;

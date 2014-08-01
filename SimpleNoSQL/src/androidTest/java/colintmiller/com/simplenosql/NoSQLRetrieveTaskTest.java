@@ -11,9 +11,11 @@ import java.util.List;
  * an entire bucket.
  */
 public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
+    private GsonSerialization serialization;
 
     public NoSQLRetrieveTaskTest() {
         super(Activity.class);
+        serialization = new GsonSerialization();
     }
 
     public void testGettingStoredData() {
@@ -22,10 +24,10 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
 
         NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, entityId);
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext());
+        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
         saveTask.doInBackground(entity);
 
-        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, SampleBean.class);
+        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class);
         List<NoSQLEntity<SampleBean>> retrievedEntities = retrieveTask.doInBackground(bucketId, entityId);
 
         assertNotNull("We should have retrieved the entities", retrievedEntities);
@@ -34,7 +36,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         assertNotNull("The retrieved entity should be non-null", retEntity);
         assertEquals(bucketId, retEntity.getBucket());
         assertEquals(entityId, retEntity.getId());
-        assertEquals(entity.jsonData(), retEntity.jsonData());
+        assertEquals(entity.getData(), retEntity.getData());
         assertEquals(entity.getData().getName(), retEntity.getData().getName());
         assertEquals(4, retEntity.getData().getListing().size());
         List ids = retEntity.getData().getListing();

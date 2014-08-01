@@ -41,14 +41,4 @@ public class NoSQLEntity<T> {
         return data;
     }
 
-    public String jsonData() {
-        Gson gson = new Gson();
-        return gson.toJson(data);
-    }
-
-    public void setJsonData(String jsonData, Class<? extends T> clazz) {
-        Gson gson = new Gson();
-        data = gson.fromJson(jsonData, clazz);
-    }
-
 }

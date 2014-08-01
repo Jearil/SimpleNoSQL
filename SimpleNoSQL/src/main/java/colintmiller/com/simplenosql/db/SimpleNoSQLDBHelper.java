@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import colintmiller.com.simplenosql.DataDeserializer;
+import colintmiller.com.simplenosql.DataSerializer;
 import colintmiller.com.simplenosql.NoSQLEntity;
 
 import java.util.ArrayList;
@@ -18,6 +20,9 @@ import static colintmiller.com.simplenosql.db.SimpleNoSQLContract.EntityEntry;
  * The database is still useful in implementation however for it's indexing retrieval and storage options.
  */
 public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
+
+    private DataSerializer serializer;
+    private DataDeserializer deserializer;
 
     public static int DATABASE_VERSION = 2;
     public static String DATABASE_NAME = "simplenosql.db";
@@ -36,8 +41,11 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE " + EntityEntry.TABLE_NAME;
 
-    public SimpleNoSQLDBHelper(Context context) {
+
+    public SimpleNoSQLDBHelper(Context context, DataSerializer serializer, DataDeserializer deserializer) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.serializer = serializer;
+        this.deserializer = deserializer;
     }
 
     @Override
@@ -57,7 +65,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(EntityEntry.COLUMN_NAME_BUCKET_ID, entity.getBucket());
         values.put(EntityEntry.COLUMN_NAME_ENTITY_ID, entity.getId());
-        values.put(EntityEntry.COLUMN_NAME_DATA, entity.jsonData());
+        values.put(EntityEntry.COLUMN_NAME_DATA, serializer.serialize(entity.getData()));
         db.insertWithOnConflict(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
@@ -97,8 +105,8 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
             String entityId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_ENTITY_ID));
             String data = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
 
-            NoSQLEntity entity = new NoSQLEntity(bucketId, entityId);
-            entity.setJsonData(data, clazz);
+            NoSQLEntity<T> entity = new NoSQLEntity<T>(bucketId, entityId);
+            entity.setData(deserializer.deserialize(data, clazz));
             results.add(entity);
         }
 

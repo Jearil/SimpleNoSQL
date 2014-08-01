@@ -15,18 +15,20 @@ import java.util.List;
  */
 public class NoSQLRetrieveTask<T> extends AsyncTask<String, Void, List<NoSQLEntity<T>>> {
     private Context context;
-    private RetrievalCallback callback;
+    private RetrievalCallback<T> callback;
     private Class<T> clazz;
+    private DataDeserializer deserializer;
 
-    public NoSQLRetrieveTask(Context context, RetrievalCallback callback, Class<T> clazz) {
+    public NoSQLRetrieveTask(Context context, RetrievalCallback<T> callback, DataDeserializer deserializer, Class<T> clazz) {
         this.context = context;
         this.callback = callback;
         this.clazz = clazz;
+        this.deserializer = deserializer;
     }
 
     @Override
     protected List<NoSQLEntity<T>> doInBackground(String... params) {
-        SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context);
+        SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context, null, deserializer);
         if (params.length == 1) {
             return helper.getEntities(params[0], clazz);
         } else if (params.length >= 2) {

@@ -13,14 +13,16 @@ import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 public class NoSQLSaveTask extends AsyncTask<NoSQLEntity, Void, Void> {
 
     private Context context;
+    private DataSerializer serializer;
 
-    public NoSQLSaveTask(Context context) {
+    public NoSQLSaveTask(Context context, DataSerializer serializer) {
         this.context = context;
+        this.serializer = serializer;
     }
 
     @Override
     protected Void doInBackground(NoSQLEntity... params) {
-        SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context);
+        SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context, serializer, null);
         for (NoSQLEntity entity : params) {
             if (entity != null) {
                 helper.saveEntity(entity);

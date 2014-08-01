@@ -14,8 +14,11 @@ import java.util.List;
  * Tests to verify the deletion asyncTask performs as expected
  */
 public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
+    private GsonSerialization serialization;
+
     public NoSQLDeleteTaskTest() {
         super(Activity.class);
+        serialization = new GsonSerialization();
     }
 
     public void testDeleteEntity() {
@@ -28,13 +31,13 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         entity.setData(bean1);
         entity2.setData(bean2);
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext());
+        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
         saveTask.doInBackground(entity, entity2);
 
         NoSQLDeleteTask deleteTask = new NoSQLDeleteTask(getInstrumentation().getTargetContext());
         deleteTask.doInBackground("delete", "first");
 
-        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext());
+        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();
         String[] columns = {SimpleNoSQLContract.EntityEntry.COLUMN_NAME_BUCKET_ID,
                 SimpleNoSQLContract.EntityEntry.COLUMN_NAME_ENTITY_ID, SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA};
@@ -58,13 +61,13 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
             lots.add(entity);
         }
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext());
+        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
         saveTask.doInBackground(lots.toArray(new NoSQLEntity[0]));
 
         NoSQLDeleteTask deleteTask = new NoSQLDeleteTask(getInstrumentation().getTargetContext());
         deleteTask.doInBackground("delete");
 
-        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext());
+        SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();
         String[] columns = {SimpleNoSQLContract.EntityEntry.COLUMN_NAME_BUCKET_ID,
                 SimpleNoSQLContract.EntityEntry.COLUMN_NAME_ENTITY_ID, SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA};

@@ -14,8 +14,11 @@ import java.util.Map;
  * Tests for NSQLEntity and it's various functions.
  */
 public class NoSQLEntityTest extends ActivityUnitTestCase {
+    private GsonSerialization serialization;
+
     public NoSQLEntityTest() {
         super(Activity.class);
+        serialization = new GsonSerialization();
     }
 
     public void testJsonConversion() {
@@ -33,10 +36,10 @@ public class NoSQLEntityTest extends ActivityUnitTestCase {
         NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("bucket", "id");
         entity.setData(testData);
 
-        String jsonData = entity.jsonData();
+        String jsonData = serialization.serialize(entity.getData());
 
         NoSQLEntity<SampleBean> hydrated = new NoSQLEntity<SampleBean>("bucket", "id2");
-        hydrated.setJsonData(jsonData, SampleBean.class);
+        hydrated.setData(serialization.deserialize(jsonData, SampleBean.class));
         SampleBean waterData = hydrated.getData();
 
         assertEquals(testData, waterData);

@@ -22,7 +22,7 @@ public class NoSQLDeleteTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
-        SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context);
+        SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context, null, null);
         if (params.length == 1) {
             helper.deleteBucket(params[0]);
         } else if (params.length == 2) {
