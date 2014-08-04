@@ -44,4 +44,12 @@ public class NoSQLEntityTest extends ActivityUnitTestCase {
 
         assertEquals(testData, waterData);
     }
+
+    public void testUUID() {
+        SampleBean testData = new SampleBean();
+        testData.setName("Colin");
+
+        NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("bucket");
+        assertNotNull(entity.getId());
+    }
 }

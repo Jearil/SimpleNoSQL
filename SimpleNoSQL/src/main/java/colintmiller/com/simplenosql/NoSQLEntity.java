@@ -1,10 +1,6 @@
 package colintmiller.com.simplenosql;
 
-
-import com.google.gson.Gson;
-
-import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -14,6 +10,10 @@ public class NoSQLEntity<T> {
     private T data;
     private String id;
     private String bucket;
+
+    public NoSQLEntity(String bucket) {
+        this(bucket, UUID.randomUUID().toString(), null);
+    }
 
     public NoSQLEntity(String bucket, String id) {
         this(bucket, id, null);
