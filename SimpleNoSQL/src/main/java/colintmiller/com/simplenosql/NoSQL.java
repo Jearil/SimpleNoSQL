@@ -97,7 +97,7 @@ public class NoSQL
      * @param <T> is the Type of the data being retrieved.
      */
     public <T> void getEntity(String bucket, String entityId, RetrievalCallback<T> callback, Class<T> clazz) {
-        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz, null);
+        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz, null, null);
         retrieveTask.execute(bucket, entityId);
     }
 
@@ -133,7 +133,15 @@ public class NoSQL
      * @param <T> is the Type of the data being retrieved.
      */
     public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz) {
-        getEntities(bucket, callback, clazz, null);
+        getEntities(bucket, callback, clazz, null, null);
+    }
+
+    public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz, DataComparator<T> comparator) {
+        getEntities(bucket, callback, clazz, null, comparator);
+    }
+
+    public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz, DataFilter<T> filter) {
+        getEntities(bucket, callback, clazz, filter, null);
     }
 
     /**
@@ -147,8 +155,9 @@ public class NoSQL
      * @param filter an optional filter that can exclude bucket items from the resultSet.
      * @param <T> is the Type of the data being retrieved.
      */
-    public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz, DataFilter<T> filter) {
-        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz, filter);
+    public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz, DataFilter<T> filter, DataComparator<T> comparator) {
+        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz, filter, comparator);
+        retrieveTask.execute(bucket);
     }
 
 }

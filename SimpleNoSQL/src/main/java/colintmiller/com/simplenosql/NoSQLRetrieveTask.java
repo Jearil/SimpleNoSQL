@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,22 +20,34 @@ public class NoSQLRetrieveTask<T> extends AsyncTask<String, Void, List<NoSQLEnti
     private Class<T> clazz;
     private DataDeserializer deserializer;
     private DataFilter<T> filter;
+    private DataComparator<T> comparator;
 
     public NoSQLRetrieveTask(Context context,
                              RetrievalCallback<T> callback,
                              DataDeserializer deserializer,
                              Class<T> clazz,
-                             DataFilter<T> filter) {
+                             DataFilter<T> filter,
+                             DataComparator<T> comparator) {
         this.context = context;
         this.callback = callback;
         this.clazz = clazz;
         this.deserializer = deserializer;
         this.filter = filter;
+        this.comparator = comparator;
     }
 
     @Override
     protected List<NoSQLEntity<T>> doInBackground(String... params) {
+        List<NoSQLEntity<T>> entities = getEntities(params);
+        if (entities != null && comparator != null) {
+            Collections.sort(entities, comparator);
+        }
+        return entities;
+    }
+
+    private List<NoSQLEntity<T>> getEntities(String... params) {
         SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context, null, deserializer);
+
         if (params.length == 1) {
             return helper.getEntities(params[0], clazz, filter);
         } else if (params.length >= 2) {
