@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import colintmiller.com.simplenosql.DataDeserializer;
+import colintmiller.com.simplenosql.DataFilter;
 import colintmiller.com.simplenosql.DataSerializer;
 import colintmiller.com.simplenosql.NoSQLEntity;
 
@@ -81,19 +82,27 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=?", args);
     }
 
-    public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz) {
+    public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz, DataFilter<T> filter) {
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=? AND " + EntityEntry.COLUMN_NAME_ENTITY_ID + "=?";
         String[] selectionArgs = {bucket, entityId};
-        return getEntities(selection, selectionArgs, clazz);
+        return getEntities(selection, selectionArgs, clazz, filter);
+    }
+
+    public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz) {
+        return getEntities(bucket, entityId, clazz, null);
+    }
+
+    public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz, DataFilter<T> filter) {
+        String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=?";
+        String[] selectionArgs = {bucket};
+        return getEntities(selection, selectionArgs, clazz, filter);
     }
 
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz) {
-        String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=?";
-        String[] selectionArgs = {bucket};
-        return getEntities(selection, selectionArgs, clazz);
+        return getEntities(bucket, clazz, null);
     }
 
-    private <T> List<NoSQLEntity<T>> getEntities(String selection, String[] selectionArgs, Class<T> clazz) {
+    private <T> List<NoSQLEntity<T>> getEntities(String selection, String[] selectionArgs, Class<T> clazz, DataFilter<T> filter) {
         List<NoSQLEntity<T>> results = new ArrayList<NoSQLEntity<T>>();
         SQLiteDatabase db = getReadableDatabase();
 
@@ -107,6 +116,10 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
 
             NoSQLEntity<T> entity = new NoSQLEntity<T>(bucketId, entityId);
             entity.setData(deserializer.deserialize(data, clazz));
+            if (filter != null && !filter.isIncluded(entity)) {
+                // skip this item, it's been filtered out.
+                continue;
+            }
             results.add(entity);
         }
 

@@ -97,7 +97,7 @@ public class NoSQL
      * @param <T> is the Type of the data being retrieved.
      */
     public <T> void getEntity(String bucket, String entityId, RetrievalCallback<T> callback, Class<T> clazz) {
-        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz);
+        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz, null);
         retrieveTask.execute(bucket, entityId);
     }
 
@@ -133,8 +133,22 @@ public class NoSQL
      * @param <T> is the Type of the data being retrieved.
      */
     public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz) {
-        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz);
-        retrieveTask.execute(bucket);
+        getEntities(bucket, callback, clazz, null);
+    }
+
+    /**
+     * Retrieves all of the entities belonging to a specific bucket. Entities must be of the same type. Ordering of the
+     * returned entities is not guaranteed. Retrieval is done Asynchronously and so this method will return immediately.
+     * The provided callback will have it's {@link colintmiller.com.simplenosql.RetrievalCallback#retrievedResults(java.util.List)}
+     * method called with the results. Optional DataFilter will filter the results.
+     * @param bucket to retrieve all entities from
+     * @param callback used for processing the results. This will be called from the UI thread.
+     * @param clazz is the class that the entity belongs to. This will be used for deserialization.
+     * @param filter an optional filter that can exclude bucket items from the resultSet.
+     * @param <T> is the Type of the data being retrieved.
+     */
+    public <T> void getEntities(String bucket, RetrievalCallback<T> callback, Class<T> clazz, DataFilter<T> filter) {
+        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, deserializer, clazz, filter);
     }
 
 }

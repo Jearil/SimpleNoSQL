@@ -27,7 +27,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
         saveTask.doInBackground(entity);
 
-        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class);
+        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class, null);
         List<NoSQLEntity<SampleBean>> retrievedEntities = retrieveTask.doInBackground(bucketId, entityId);
 
         assertNotNull("We should have retrieved the entities", retrievedEntities);
@@ -45,6 +45,28 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             String id = (String) ids.get(i);
             assertEquals("ID" + i, id);
         }
+    }
+
+    public void testGettingFilteredResults() {
+        String bucketId = "bucket";
+
+        NoSQLEntity<SampleBean> entity1 = getTestEntry(bucketId, "entity1");
+        NoSQLEntity<SampleBean> entity2 = getTestEntry(bucketId, "entity2");
+
+        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
+        saveTask.doInBackground(entity1, entity2);
+
+        DataFilter<SampleBean> filter = new DataFilter<SampleBean>() {
+            @Override
+            public boolean isIncluded(NoSQLEntity<SampleBean> item) {
+                return item.getId().equals("entity2");
+            }
+        };
+        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class, filter);
+        List<NoSQLEntity<SampleBean>> items = retrieveTask.doInBackground(bucketId);
+        assertNotNull("The list of entities should not be null", items);
+        assertEquals(1, items.size());
+        assertEquals("entity2", items.get(0).getId());
     }
 
     //TODO: Add a test for getting all entities of a bucket
