@@ -1,46 +1,102 @@
 package colintmiller.com.simplenosql;
 
 import android.app.Activity;
+import android.content.Context;
 import android.test.ActivityUnitTestCase;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Tests for the RetrieveTask for querying data from the DB. This includes querying a single entity or
  * an entire bucket.
  */
 public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
-    private GsonSerialization serialization;
     private String bucketId;
+    private CountDownLatch signal;
+    private List<NoSQLEntity<SampleBean>> results;
+    private Context context;
 
     public NoSQLRetrieveTaskTest() {
         super(Activity.class);
-        serialization = new GsonSerialization();
         bucketId = "retrieveTests";
+        results = new ArrayList<NoSQLEntity<SampleBean>>();
+    }
+
+    private RetrievalCallback<SampleBean> getCallback() {
+        return new RetrievalCallback<SampleBean>() {
+            @Override
+            public void retrievedResults(List<NoSQLEntity<SampleBean>> noSQLEntities) {
+                results.addAll(noSQLEntities);
+                signal.countDown();
+            }
+        };
     }
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        TestUtils.cleanBucket(bucketId, getInstrumentation().getTargetContext());
+        this.context = getInstrumentation().getTargetContext();
+
+        try {
+            runTestOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    signal = TestUtils.cleanBucket(bucketId, context);
+                }
+            });
+        } catch (Throwable throwable) {
+            // an error happened
+            throw new Exception(throwable);
+        }
+        signal.await();
+
+        signal = new CountDownLatch(1);
     }
 
-    public void testGettingStoredData() {
-        String entityId = "entityId";
+    public void testRetrievalBuilder() throws Throwable {
+        NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, "entity");
+        SampleBean bean = new SampleBean();
+        bean.setName("Colin");
+        entity.setData(bean);
+
+        saveBean(entity);
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .withBucketId(bucketId)
+                        .retrieve(getCallback());
+            }
+        });
+
+        signal.await();
+        assertFalse("We should have results", results.isEmpty());
+    }
+
+    public void testGettingStoredData() throws Throwable {
+        final String entityId = "entityId";
 
         NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, entityId);
+        saveBean(entity);
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
-        saveTask.doInBackground(entity);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .withBucketId(bucketId)
+                        .withEntityId(entityId)
+                        .retrieve(getCallback());
+            }
+        });
 
-        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class, null, null);
-        List<NoSQLEntity<SampleBean>> retrievedEntities = retrieveTask.doInBackground(bucketId, entityId);
+        signal.await();
 
-        assertNotNull("We should have retrieved the entities", retrievedEntities);
-        assertEquals(1, retrievedEntities.size());
-        NoSQLEntity<SampleBean> retEntity = retrievedEntities.get(0);
+        assertNotNull("We should have retrieved the entities", results);
+        assertEquals(1, results.size());
+        NoSQLEntity<SampleBean> retEntity = results.get(0);
         assertNotNull("The retrieved entity should be non-null", retEntity);
         assertEquals(bucketId, retEntity.getBucket());
         assertEquals(entityId, retEntity.getId());
@@ -55,28 +111,37 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         }
     }
 
-    public void testGettingFilteredResults() {
+    public void testGettingFilteredResults() throws Throwable {
 
         NoSQLEntity<SampleBean> entity1 = getTestEntry(bucketId, "entity1");
         NoSQLEntity<SampleBean> entity2 = getTestEntry(bucketId, "entity2");
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
-        saveTask.doInBackground(entity1, entity2);
+        saveBean(entity1, entity2);
 
-        DataFilter<SampleBean> filter = new DataFilter<SampleBean>() {
+        final DataFilter<SampleBean> filter = new DataFilter<SampleBean>() {
             @Override
             public boolean isIncluded(NoSQLEntity<SampleBean> item) {
                 return item.getId().equals("entity2");
             }
         };
-        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class, filter, null);
-        List<NoSQLEntity<SampleBean>> items = retrieveTask.doInBackground(bucketId);
-        assertNotNull("The list of entities should not be null", items);
-        assertEquals(1, items.size());
-        assertEquals("entity2", items.get(0).getId());
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .withBucketId(bucketId)
+                        .withFilter(filter)
+                        .retrieve(getCallback());
+            }
+        });
+        signal.await();
+
+        assertNotNull("The list of entities should not be null", results);
+        assertEquals(1, results.size());
+        assertEquals("entity2", results.get(0).getId());
     }
 
-    public void testGettingOrderedResults() {
+    public void testGettingOrderedResults() throws Throwable {
 
         List<NoSQLEntity<SampleBean>> entities = new ArrayList<NoSQLEntity<SampleBean>>(5);
 
@@ -88,12 +153,11 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             entities.add(data);
         }
 
-        NoSQLSaveTask saveTask = new NoSQLSaveTask(getInstrumentation().getTargetContext(), serialization);
-        saveTask.doInBackground(entities.toArray(new NoSQLEntity[1]));
+        saveBean(entities.toArray(new NoSQLEntity[1]));
 
         // we want unique ordering where odd numbers are lower than even numbers
         // [1,2,3,4,5] -> [1,3,5,2,4]
-        DataComparator<SampleBean> comparator = new DataComparator<SampleBean>() {
+        final DataComparator<SampleBean> comparator = new DataComparator<SampleBean>() {
             @Override
             public int compare(NoSQLEntity<SampleBean> lhs, NoSQLEntity<SampleBean> rhs) {
                 int lhsid = lhs.getData().getId();
@@ -115,15 +179,65 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             }
         };
 
-        NoSQLRetrieveTask<SampleBean> retrieveTask = new NoSQLRetrieveTask<SampleBean>(getInstrumentation().getTargetContext(), null, serialization, SampleBean.class, null, comparator);
-        List<NoSQLEntity<SampleBean>> beans = retrieveTask.doInBackground(bucketId);
-        assertNotNull("Should have returned a list", beans);
-        assertEquals("Should have 5 items in it", 5, beans.size());
-        assertEquals(1, beans.get(0).getData().getId());
-        assertEquals(3, beans.get(1).getData().getId());
-        assertEquals(5, beans.get(2).getData().getId());
-        assertEquals(2, beans.get(3).getData().getId());
-        assertEquals(4, beans.get(4).getData().getId());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .withBucketId(bucketId)
+                        .withComparator(comparator)
+                        .retrieve(getCallback());
+            }
+        });
+
+        signal.await();
+
+        assertNotNull("Should have returned a list", results);
+        assertEquals("Should have 5 items in it", 5, results.size());
+        assertEquals(1, results.get(0).getData().getId());
+        assertEquals(3, results.get(1).getData().getId());
+        assertEquals(5, results.get(2).getData().getId());
+        assertEquals(2, results.get(3).getData().getId());
+        assertEquals(4, results.get(4).getData().getId());
+    }
+
+    public void testNoBucket() throws Throwable {
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .retrieve(getCallback());
+            }
+        });
+        signal.await();
+
+        assertTrue("Results should be empty", results.isEmpty());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void saveBean(final NoSQLEntity... bean) throws Throwable {
+        final List<NoSQLEntity<SampleBean>> beans = new ArrayList<NoSQLEntity<SampleBean>>(bean.length);
+
+        for (NoSQLEntity<SampleBean> aBean : bean) {
+            beans.add(aBean);
+        }
+
+        final CountDownLatch saveLatch = new CountDownLatch(1);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .addObserver(new OperationObserver() {
+
+                            @Override
+                            public void hasFinished() {
+                                saveLatch.countDown();
+                            }
+                        })
+                        .save(beans);
+            }
+        });
+
+        saveLatch.await();
     }
 
     //TODO: Add a test for getting all entities of a bucket

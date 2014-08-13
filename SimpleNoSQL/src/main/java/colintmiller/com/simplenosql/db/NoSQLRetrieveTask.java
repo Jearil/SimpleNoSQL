@@ -1,7 +1,13 @@
-package colintmiller.com.simplenosql;
+package colintmiller.com.simplenosql.db;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import colintmiller.com.simplenosql.DataComparator;
+import colintmiller.com.simplenosql.DataDeserializer;
+import colintmiller.com.simplenosql.DataFilter;
+import colintmiller.com.simplenosql.NoSQLEntity;
+import colintmiller.com.simplenosql.OperationObserver;
+import colintmiller.com.simplenosql.RetrievalCallback;
 import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 
 import java.util.Collections;
@@ -21,15 +27,18 @@ public class NoSQLRetrieveTask<T> extends AsyncTask<String, Void, List<NoSQLEnti
     private DataDeserializer deserializer;
     private DataFilter<T> filter;
     private DataComparator<T> comparator;
+    private List<OperationObserver> observers;
 
     public NoSQLRetrieveTask(Context context,
                              RetrievalCallback<T> callback,
+                             List<OperationObserver> observers,
                              DataDeserializer deserializer,
                              Class<T> clazz,
                              DataFilter<T> filter,
                              DataComparator<T> comparator) {
         this.context = context;
         this.callback = callback;
+        this.observers = observers;
         this.clazz = clazz;
         this.deserializer = deserializer;
         this.filter = filter;
@@ -58,6 +67,13 @@ public class NoSQLRetrieveTask<T> extends AsyncTask<String, Void, List<NoSQLEnti
 
     @Override
     protected void onPostExecute(List<NoSQLEntity<T>> noSQLEntity) {
-        callback.retrievedResults(noSQLEntity);
+        if (callback != null) {
+            callback.retrievedResults(noSQLEntity);
+        }
+        if (observers != null && !observers.isEmpty()) {
+            for (OperationObserver observer : observers) {
+                observer.hasFinished();
+            }
+        }
     }
 }

@@ -83,6 +83,9 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
     }
 
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz, DataFilter<T> filter) {
+        if (bucket == null || entityId == null) {
+            return new ArrayList<NoSQLEntity<T>>(0);
+        }
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=? AND " + EntityEntry.COLUMN_NAME_ENTITY_ID + "=?";
         String[] selectionArgs = {bucket, entityId};
         return getEntities(selection, selectionArgs, clazz, filter);
@@ -93,6 +96,9 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
     }
 
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz, DataFilter<T> filter) {
+        if (bucket == null) {
+            return new ArrayList<NoSQLEntity<T>>(0);
+        }
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=?";
         String[] selectionArgs = {bucket};
         return getEntities(selection, selectionArgs, clazz, filter);

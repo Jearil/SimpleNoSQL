@@ -1,8 +1,11 @@
-package colintmiller.com.simplenosql;
+package colintmiller.com.simplenosql.db;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import colintmiller.com.simplenosql.OperationObserver;
 import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
+
+import java.util.List;
 
 /**
  * The AsyncTask that will be used to delete one or more entities from the DB. There are two possible
@@ -15,9 +18,15 @@ import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 public class NoSQLDeleteTask extends AsyncTask<String, Void, Void> {
 
     private Context context;
+    private List<OperationObserver> observers;
+
+    public NoSQLDeleteTask(Context context, List<OperationObserver> observers) {
+        this.context = context;
+        this.observers = observers;
+    }
 
     public NoSQLDeleteTask(Context context) {
-        this.context = context;
+        this(context, null);
     }
 
     @Override
@@ -30,5 +39,14 @@ public class NoSQLDeleteTask extends AsyncTask<String, Void, Void> {
         }
 
         return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        if (observers != null && !observers.isEmpty()) {
+            for (OperationObserver observer : observers) {
+                observer.hasFinished();
+            }
+        }
     }
 }
