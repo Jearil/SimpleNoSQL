@@ -67,7 +67,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
-                        .withBucketId(bucketId)
+                        .bucketId(bucketId)
                         .retrieve(getCallback());
             }
         });
@@ -86,8 +86,8 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
-                        .withBucketId(bucketId)
-                        .withEntityId(entityId)
+                        .bucketId(bucketId)
+                        .entityId(entityId)
                         .retrieve(getCallback());
             }
         });
@@ -129,8 +129,8 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
-                        .withBucketId(bucketId)
-                        .withFilter(filter)
+                        .bucketId(bucketId)
+                        .filter(filter)
                         .retrieve(getCallback());
             }
         });
@@ -183,8 +183,8 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
-                        .withBucketId(bucketId)
-                        .withComparator(comparator)
+                        .bucketId(bucketId)
+                        .orderBy(comparator)
                         .retrieve(getCallback());
             }
         });

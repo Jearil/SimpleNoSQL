@@ -31,10 +31,10 @@ public class NoSQL
     public static <T> QueryBuilder<T> with(Context context, Class<T> clazz) {
         QueryBuilder<T> builder = new QueryBuilder<T>(context, clazz);
         if (serializer != null) {
-            builder.withSerializer(serializer);
+            builder.serializer(serializer);
         }
         if (deserializer != null) {
-            builder.withDeserializer(deserializer);
+            builder.deserializer(deserializer);
         }
 
         return builder;

@@ -13,7 +13,7 @@ public class TestUtils {
         final CountDownLatch signal = new CountDownLatch(1);
 
         NoSQL.with(context, TestUtils.class)
-                .withBucketId(bucket)
+                .bucketId(bucket)
                 .addObserver(new OperationObserver() {
                     @Override
                     public void hasFinished() {

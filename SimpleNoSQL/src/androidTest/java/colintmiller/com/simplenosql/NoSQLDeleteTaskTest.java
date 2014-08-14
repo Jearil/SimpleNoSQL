@@ -72,8 +72,8 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
-                        .withBucketId("delete")
-                        .withEntityId("first")
+                        .bucketId("delete")
+                        .entityId("first")
                         .addObserver(getObserver())
                         .delete();
             }
@@ -120,7 +120,7 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
-                        .withBucketId("delete")
+                        .bucketId("delete")
                         .addObserver(getObserver())
                         .delete();
             }

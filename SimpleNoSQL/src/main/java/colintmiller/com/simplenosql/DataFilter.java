@@ -11,5 +11,5 @@ public interface DataFilter<T> {
      * @param item to possibly filter
      * @return true if the item should exist in the list, false if it should be filtered out.
      */
-    boolean isIncluded(NoSQLEntity<T> item);
+    public boolean isIncluded(NoSQLEntity<T> item);
 }

@@ -28,7 +28,7 @@ import java.util.List;
  * <pre>
  *     QueryBuilder<String> builder = new QueryBuilder<String>(context, String.class)
  *       .withBucket("bucket1")
- *       .withEntityId("string1")
+ *       .entityId("string1")
  *       .retrieve(new RetrievalCallback<String>() {
  *           public void retrievedResults(List<NoSQLEntity<String>> entities) {
  *              // display String to screen
@@ -41,7 +41,7 @@ import java.util.List;
  * <pre>
  *     QueryBuilder<String> builder = new QueryBuilder<String>(context, String.class)
  *       .withBucket("bucket1")
- *       .withEntityId("string1")
+ *       .entityId("string1")
  *       .delete();
  * </pre>
  *
@@ -58,7 +58,6 @@ public class QueryBuilder<T> {
     private String entityId;
     private DataFilter<T> filter;
     private DataComparator<T> comparator;
-//    private boolean naturalOrdering;
     private List<OperationObserver> observers;
     private Class<T> clazz;
 
@@ -82,7 +81,7 @@ public class QueryBuilder<T> {
      * @param entityId to use for retrieval or deletion.
      * @return this for chaining.
      */
-    public QueryBuilder<T> withEntityId(String entityId) {
+    public QueryBuilder<T> entityId(String entityId) {
         this.entityId = entityId;
         return this;
     }
@@ -97,7 +96,7 @@ public class QueryBuilder<T> {
      * @param bucketId to use for retrieval or deletion of data.
      * @return this for chaining.
      */
-    public QueryBuilder<T> withBucketId(String bucketId) {
+    public QueryBuilder<T> bucketId(String bucketId) {
         this.bucketId = bucketId;
         return this;
     }
@@ -111,7 +110,7 @@ public class QueryBuilder<T> {
      * @param filter to apply to the data when retrieving.
      * @return this for chaining.
      */
-    public QueryBuilder<T> withFilter(DataFilter<T> filter) {
+    public QueryBuilder<T> filter(DataFilter<T> filter) {
         this.filter = filter;
         return this;
     }
@@ -125,15 +124,10 @@ public class QueryBuilder<T> {
      * @param comparator to use to sort the retrieved data.
      * @return this for chaining.
      */
-    public QueryBuilder<T> withComparator(DataComparator<T> comparator) {
+    public QueryBuilder<T> orderBy(DataComparator<T> comparator) {
         this.comparator = comparator;
         return this;
     }
-//
-//    public QueryBuilder<T> withNaturalOrdering(boolean ordering) {
-//        this.naturalOrdering = ordering;
-//        return this;
-//    }
 
     /**
      * <p>Used in: RETRIEVAL
@@ -142,13 +136,13 @@ public class QueryBuilder<T> {
      * {@link colintmiller.com.simplenosql.DataDeserializer} with {@link NoSQL#registerDeserializer(DataDeserializer)},
      * then this method will have already been called with that custom deserializer. You can use this to override what
      * deserializer will be used for data retrieval. If you always call this method (and
-     * {@link colintmiller.com.simplenosql.QueryBuilder#withSerializer(DataSerializer)}), or you register both with
+     * {@link colintmiller.com.simplenosql.QueryBuilder#serializer(DataSerializer)}), or you register both with
      * NoSQL, you may remove Gson as a dependency.
      *
      * @param deserializer to use for deserializing data
      * @return this for chaining.
      */
-    public QueryBuilder<T> withDeserializer(DataDeserializer deserializer) {
+    public QueryBuilder<T> deserializer(DataDeserializer deserializer) {
         this.deserializer = deserializer;
         return this;
     }
@@ -160,13 +154,13 @@ public class QueryBuilder<T> {
      * {@link colintmiller.com.simplenosql.DataSerializer} with {@link NoSQL#registerSerializer(DataSerializer)},
      * then this method will have already been called with that custom serializer. You can use this to override what
      * serializer will be used for data retrieval. If you always call this method (and
-     * {@link colintmiller.com.simplenosql.QueryBuilder#withDeserializer(DataDeserializer)}), or you register both with
+     * {@link colintmiller.com.simplenosql.QueryBuilder#deserializer(DataDeserializer)}), or you register both with
      * NoSQL, you may remove Gson as a dependency.
      *
      * @param serializer to use for serializing data.
      * @return this for chaining.
      */
-    public QueryBuilder<T> withSerializer(DataSerializer serializer) {
+    public QueryBuilder<T> serializer(DataSerializer serializer) {
         this.serializer = serializer;
         return this;
     }

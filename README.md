@@ -15,19 +15,68 @@ library can really speed things up. Saving data is pretty easy:
 	data.setBirthdayMap(birthday);
 	entity.setData(data);
 
-	NoSQL noSQL = new NoSQL(context);
-	noSQL.save(entity);
+    NoSQL.with(context, SampleBean.class).save(entity);
 
 Later, when you want to retrieve it, you can use a callback interface and the bucket and ID you saved with:
 
-    NoSQL noSQL = new NoSQL(context);
-	RetrievalCallback<SampleBean> callback = new RetrievalCallback<SampleBean>() {
+    NoSQL.with(context, SampleBean.class)
+        .bucket("bucket")
+        .entity("entityId")
+        .retrieve(new RetrievalCallback<SampleBean>() {
 		public void retrieveResults(List<NoSQLEntity<SampleBean> entities) {
 			// Display results or something	
 			SampleBean firstBean = entities.get(0).getData(); // always check length of a list first...
 		}	
-	};
-    noSQL.getEntity("bucket", "entityId", callback, SampleBean.class);
+	});
+
+If you'd like to delete data, you can use
+
+    NoSQL.with(context, SampleBean.class)
+        .bucket("bucket")
+        .entity("entityId")
+        .delete()
+
+To delete a single entity. Or you can delete an entire bucket via:
+
+    NoSQL.with(context, SampleBean.class)
+        .bucket("bucket")
+        .delete()
+
+When making a query, you can filter results by including a DataFilter. You can also order the results by including a
+DataComparator.
+
+    NoSQL.with(context, SampleBean.class)
+        .bucket("bucket")
+        .filter(new DataFilter<SampleBean>() {
+            public boolean isIncluded(NoSQLEntity<SampleBean> item) {
+                if (item != null && item.getData() != null) {
+                    SampleBean bean = item.getData();
+                    return bean.hasBirthdaymap();
+                }
+                return false;
+            }
+        })
+        .orderBy(new DataComparator<SampleBean>() {
+            public int compare(NoSQLEntity<SampleBean> lhs, NoSQLEntity<SampleBean> rhs) {
+                if (lhs != null && lhs.getData() != null) {
+                    if (rhs != null && rhs.getData() != null) {
+                        return lhs.getData().getName().compareTo(rhs.getData().getName());
+                    } else {
+                        return 1;
+                    }
+                } else if (rhs != null && rhs.getData() != null) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            }
+        })
+        .retrieve(new RetrievalCallback<SampleBean>() {
+            public void retrieveResults(List<NoSQLEntity<SampleBean> entities) {
+                // Display results or something
+                SampleBean firstBean = entities.get(0).getData(); // always check length of a list first...
+            }
+        });
 
 Development
 -----------
@@ -38,12 +87,12 @@ You can access snapshots on sonatype by adding the following to your modules bui
     repositories {
 	    mavenCentral()
 	    maven {
-		        url 'https://oss.sonatype.org/content/repositories/snapshots'
+		        url 'https://oss.sonatype.org/content/groups/public'
 		    }
 	}
 
     dependencies {
-	    compile 'com.colintmiller:simplenosql:0.1.3-SNAPSHOT'
+	    compile 'com.colintmiller:simplenosql:0.2.0'
 	}
 
 License
