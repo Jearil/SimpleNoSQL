@@ -67,7 +67,7 @@ public class QueryBuilder<T> {
      * @param clazz related to this operation.
      */
     public QueryBuilder(Context context, Class<T> clazz) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.clazz = clazz;
         this.observers = new ArrayList<OperationObserver>();
     }
