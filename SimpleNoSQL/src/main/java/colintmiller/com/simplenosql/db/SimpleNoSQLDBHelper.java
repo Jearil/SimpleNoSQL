@@ -115,20 +115,23 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         String[] columns = {EntityEntry.COLUMN_NAME_BUCKET_ID, EntityEntry.COLUMN_NAME_ENTITY_ID, EntityEntry.COLUMN_NAME_DATA};
 
         Cursor cursor = db.query(EntityEntry.TABLE_NAME, columns, selection, selectionArgs, null, null, null);
-        while (cursor.moveToNext()) {
-            String bucketId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_BUCKET_ID));
-            String entityId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_ENTITY_ID));
-            String data = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
+        try {
+            while (cursor.moveToNext()) {
+                String bucketId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_BUCKET_ID));
+                String entityId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_ENTITY_ID));
+                String data = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
 
-            NoSQLEntity<T> entity = new NoSQLEntity<T>(bucketId, entityId);
-            entity.setData(deserializer.deserialize(data, clazz));
-            if (filter != null && !filter.isIncluded(entity)) {
-                // skip this item, it's been filtered out.
-                continue;
+                NoSQLEntity<T> entity = new NoSQLEntity<T>(bucketId, entityId);
+                entity.setData(deserializer.deserialize(data, clazz));
+                if (filter != null && !filter.isIncluded(entity)) {
+                    // skip this item, it's been filtered out.
+                    continue;
+                }
+                results.add(entity);
             }
-            results.add(entity);
+        } finally {
+            cursor.close();
         }
-
         return results;
     }
 }
