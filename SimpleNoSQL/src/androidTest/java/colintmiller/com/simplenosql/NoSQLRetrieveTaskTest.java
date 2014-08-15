@@ -213,6 +213,83 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         assertTrue("Results should be empty", results.isEmpty());
     }
 
+
+    public void testNoEntity() throws Throwable {
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .addObserver(getObserver())
+                        .save(new NoSQLEntity<SampleBean>("null", "nullitem"));
+            }
+        });
+        signal.await();
+        signal = new CountDownLatch(1);
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .bucketId("null")
+                        .entityId("nullitem")
+                        .retrieve(getCallback());
+            }
+        });
+        signal.await();
+
+        assertFalse("Results should not be empty with a null entry", results.isEmpty());
+        assertNull("Item should have been null", results.get(0).getData());
+
+    }
+
+    public void testOldData() throws Throwable {
+        OldSampleBean oldBean = new OldSampleBean();
+        oldBean.setName("Colin");
+        oldBean.setField1("Developer");
+        oldBean.setId(1);
+
+        final NoSQLEntity<OldSampleBean> oldEntity = new NoSQLEntity<OldSampleBean>("oldbucket", "old");
+        oldEntity.setData(oldBean);
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, OldSampleBean.class)
+                        .addObserver(getObserver())
+                        .save(oldEntity);
+            }
+        });
+        signal.await();
+        signal = new CountDownLatch(1);
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context, SampleBean.class)
+                        .bucketId("oldbucket")
+                        .entityId("old")
+                        .retrieve(getCallback());
+            }
+        });
+        signal.await();
+
+        assertFalse("Should have gotten results", results.isEmpty());
+        SampleBean bean = results.get(0).getData();
+        assertEquals("Name data should match between old and new", oldBean.getName(), bean.getName());
+        assertEquals("Field1 data should match between old and new", oldBean.getField1(), bean.getField1());
+        assertEquals("ID data should match between old and new", oldBean.getId(), bean.getId());
+        assertNull("Old bean didn't have an innerBean, so this one shouldn't either", bean.getInnerBean());
+    }
+
+    private OperationObserver getObserver() {
+        return new OperationObserver() {
+            @Override
+            public void hasFinished() {
+                signal.countDown();;
+            }
+        };
+    }
+
     @SuppressWarnings("unchecked")
     private void saveBean(final NoSQLEntity... bean) throws Throwable {
         final List<NoSQLEntity<SampleBean>> beans = new ArrayList<NoSQLEntity<SampleBean>>(bean.length);
