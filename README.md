@@ -85,14 +85,13 @@ the best way of making it simple to access documents. The current API uses gson 
 You can access snapshots on sonatype by adding the following to your modules build.gradle:
 
     repositories {
-	    mavenCentral()
 	    maven {
 		        url 'https://oss.sonatype.org/content/groups/public'
 		    }
 	}
 
     dependencies {
-	    compile 'com.colintmiller:simplenosql:0.2.0'
+	    compile 'com.colintmiller:simplenosql:0.2.1'
 	}
 
 License
