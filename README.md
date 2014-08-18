@@ -91,7 +91,7 @@ You can access snapshots on sonatype by adding the following to your modules bui
 	}
 
     dependencies {
-	    compile 'com.colintmiller:simplenosql:0.2.1'
+	    compile 'com.colintmiller:simplenosql:0.2.2'
 	}
 
 License
