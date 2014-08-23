@@ -5,12 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityUnitTestCase;
-import colintmiller.com.simplenosql.db.SimpleNoSQLContract;
-import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import colintmiller.com.simplenosql.db.SimpleNoSQLContract;
+import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 
 /**
  * Tests for saving entities to the DB. This includes saving a single entity or saving multiple entities.
@@ -18,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
 public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
     private GsonSerialization serialization;
     private CountDownLatch signal;
-    private Context context;
+    private NoSQL noSQL;
 
     public NoSQLSaveTaskTest() {
         super(Activity.class);
@@ -29,7 +30,8 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
     public void setUp() throws Exception {
         super.setUp();
         signal = new CountDownLatch(1);
-        this.context = getInstrumentation().getTargetContext();
+        Context context = getInstrumentation().getTargetContext();
+        noSQL = NoSQL.with(context);
     }
 
     public void testSaveEntity() throws Throwable {
@@ -42,7 +44,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(entity);
             }
@@ -64,7 +66,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
 
     public void testSaveEntities() throws Throwable {
         final List<NoSQLEntity<SampleBean>> allEntities = new ArrayList<NoSQLEntity<SampleBean>>(3);
-        for(int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
             NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("sample", "entity" + i);
             SampleBean data = new SampleBean();
             data.setId(i);
@@ -76,7 +78,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(allEntities);
             }
@@ -96,7 +98,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
 
         assertEquals(cursor.getCount(), 3);
         int counter = 0;
-        while(cursor.moveToNext()) {
+        while (cursor.moveToNext()) {
             String data = cursor.getString(cursor.getColumnIndex(SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA));
             NoSQLEntity<SampleBean> bean = new NoSQLEntity<SampleBean>("bucket", "id");
             bean.setData(serialization.deserialize(data, SampleBean.class));
@@ -110,7 +112,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         return new OperationObserver() {
             @Override
             public void hasFinished() {
-                signal.countDown();;
+                signal.countDown();
             }
         };
     }

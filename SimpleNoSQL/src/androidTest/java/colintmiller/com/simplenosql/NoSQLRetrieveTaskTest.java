@@ -5,6 +5,7 @@ import android.content.Context;
 import android.test.ActivityUnitTestCase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -17,6 +18,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
     private CountDownLatch signal;
     private List<NoSQLEntity<SampleBean>> results;
     private Context context;
+    private NoSQL noSQL;
 
     public NoSQLRetrieveTaskTest() {
         super(Activity.class);
@@ -38,6 +40,8 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
     public void setUp() throws Exception {
         super.setUp();
         this.context = getInstrumentation().getTargetContext();
+
+        noSQL = NoSQL.with(context);
 
         try {
             runTestOnUiThread(new Runnable() {
@@ -66,7 +70,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId(bucketId)
                         .retrieve(getCallback());
             }
@@ -85,7 +89,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId(bucketId)
                         .entityId(entityId)
                         .retrieve(getCallback());
@@ -128,7 +132,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId(bucketId)
                         .filter(filter)
                         .retrieve(getCallback());
@@ -182,7 +186,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId(bucketId)
                         .orderBy(comparator)
                         .retrieve(getCallback());
@@ -204,7 +208,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .retrieve(getCallback());
             }
         });
@@ -218,7 +222,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(new NoSQLEntity<SampleBean>("null", "nullitem"));
             }
@@ -229,7 +233,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId("null")
                         .entityId("nullitem")
                         .retrieve(getCallback());
@@ -254,7 +258,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, OldSampleBean.class)
+                noSQL.using(OldSampleBean.class)
                         .addObserver(getObserver())
                         .save(oldEntity);
             }
@@ -265,7 +269,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId("oldbucket")
                         .entityId("old")
                         .retrieve(getCallback());
@@ -285,7 +289,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         return new OperationObserver() {
             @Override
             public void hasFinished() {
-                signal.countDown();;
+                signal.countDown();
             }
         };
     }
@@ -302,7 +306,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .addObserver(new OperationObserver() {
 
                             @Override
