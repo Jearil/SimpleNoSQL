@@ -15,11 +15,11 @@ library can really speed things up. Saving data is pretty easy:
 	data.setBirthdayMap(birthday);
 	entity.setData(data);
 
-    NoSQL.with(context, SampleBean.class).save(entity);
+    NoSQL.with(context).using(SampleBean.class).save(entity);
 
 Later, when you want to retrieve it, you can use a callback interface and the bucket and ID you saved with:
 
-    NoSQL.with(context, SampleBean.class)
+    NoSQL.with(context).using(SampleBean.class)
         .bucket("bucket")
         .entity("entityId")
         .retrieve(new RetrievalCallback<SampleBean>() {
@@ -31,21 +31,21 @@ Later, when you want to retrieve it, you can use a callback interface and the bu
 
 If you'd like to delete data, you can use
 
-    NoSQL.with(context, SampleBean.class)
+    NoSQL.with(context).using(SampleBean.class)
         .bucket("bucket")
         .entity("entityId")
         .delete()
 
 To delete a single entity. Or you can delete an entire bucket via:
 
-    NoSQL.with(context, SampleBean.class)
+    NoSQL.with(context).using(SampleBean.class)
         .bucket("bucket")
         .delete()
 
 When making a query, you can filter results by including a DataFilter. You can also order the results by including a
 DataComparator.
 
-    NoSQL.with(context, SampleBean.class)
+    NoSQL.with(context).using(SampleBean.class)
         .bucket("bucket")
         .filter(new DataFilter<SampleBean>() {
             public boolean isIncluded(NoSQLEntity<SampleBean> item) {
