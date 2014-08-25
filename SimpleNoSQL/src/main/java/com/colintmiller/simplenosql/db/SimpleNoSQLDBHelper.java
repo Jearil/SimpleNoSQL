@@ -68,18 +68,21 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         values.put(EntityEntry.COLUMN_NAME_ENTITY_ID, entity.getId());
         values.put(EntityEntry.COLUMN_NAME_DATA, serializer.serialize(entity.getData()));
         db.insertWithOnConflict(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
     }
 
     public void deleteEntity(String bucket, String entityId) {
         SQLiteDatabase db = getWritableDatabase();
         String[] args = {bucket, entityId};
         db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=? and " + EntityEntry.COLUMN_NAME_ENTITY_ID + "=?", args);
+        db.close();
     }
 
     public void deleteBucket(String bucket) {
         SQLiteDatabase db = getWritableDatabase();
         String[] args = {bucket};
         db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=?", args);
+        db.close();
     }
 
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz, DataFilter<T> filter) {
@@ -131,6 +134,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
             }
         } finally {
             cursor.close();
+            db.close();
         }
         return results;
     }
