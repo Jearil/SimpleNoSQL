@@ -5,20 +5,21 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityUnitTestCase;
-import colintmiller.com.simplenosql.db.SimpleNoSQLContract;
-import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import colintmiller.com.simplenosql.db.SimpleNoSQLContract;
+import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
 
 /**
  * Tests to verify the deletion asyncTask performs as expected
  */
 public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
     private GsonSerialization serialization;
-    private Context context;
     private CountDownLatch signal;
+    private NoSQL noSQL;
 
     public NoSQLDeleteTaskTest() {
         super(Activity.class);
@@ -28,7 +29,8 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        context = getInstrumentation().getTargetContext();
+        Context context = getInstrumentation().getTargetContext();
+        noSQL = NoSQL.with(context);
         signal = new CountDownLatch(1);
     }
 
@@ -58,7 +60,7 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(entities);
             }
@@ -71,7 +73,7 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId("delete")
                         .entityId("first")
                         .addObserver(getObserver())
@@ -107,7 +109,7 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(lots);
             }
@@ -119,7 +121,7 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                noSQL.using(SampleBean.class)
                         .bucketId("delete")
                         .addObserver(getObserver())
                         .delete();
