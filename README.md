@@ -9,9 +9,9 @@ library can really speed things up. Saving data is pretty easy:
 	SampleBean data = new SampleBean();
 	data.setName("Colin");
 	Map<String, Integer> birthday = new HashMap<String, Integer>();
-	birthday.set("day", "17");
-	birthday.set("month", "02");
-	birthday.set("year", "1982");
+	birthday.put("day", 17);
+	birthday.put("month", 2);
+	birthday.put("year", 1982);
 	data.setBirthdayMap(birthday);
 	entity.setData(data);
 
