@@ -79,10 +79,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
     public void testGettingStoredData() throws Throwable {
         final String entityId = "entityId";
 
-        NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, entityId);
-        saveBean(entity);
-
-        runTestOnUiThread(new Runnable() {
+        Runnable run = new Runnable() {
             @Override
             public void run() {
                 NoSQL.with(context, SampleBean.class)
@@ -90,7 +87,30 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
                         .entityId(entityId)
                         .retrieve(getCallback());
             }
-        });
+        };
+        gettingStoredDataWithRunnable(entityId, run);
+    }
+
+    public void testGettingStoredDataWithSingleton() throws Throwable {
+        final String entityId = "entityId";
+
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                NoSQL.with(context).using(SampleBean.class)
+                        .bucketId(bucketId)
+                        .entityId(entityId)
+                        .retrieve(getCallback());
+            }
+        };
+        gettingStoredDataWithRunnable(entityId, run);
+    }
+
+    private void gettingStoredDataWithRunnable(final String entityId, Runnable runnable) throws Throwable {
+        NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, entityId);
+        saveBean(entity);
+
+        runTestOnUiThread(runnable);
 
         signal.await();
 
