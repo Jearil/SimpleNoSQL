@@ -1,4 +1,4 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 /**
  * This is going to represent SampleBean in an older form. Basically before we added additional fields into it.

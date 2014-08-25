@@ -1,14 +1,13 @@
-package colintmiller.com.simplenosql.db;
+package com.colintmiller.simplenosql.db;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import colintmiller.com.simplenosql.DataComparator;
-import colintmiller.com.simplenosql.DataDeserializer;
-import colintmiller.com.simplenosql.DataFilter;
-import colintmiller.com.simplenosql.NoSQLEntity;
-import colintmiller.com.simplenosql.OperationObserver;
-import colintmiller.com.simplenosql.RetrievalCallback;
-import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
+import com.colintmiller.simplenosql.DataComparator;
+import com.colintmiller.simplenosql.DataDeserializer;
+import com.colintmiller.simplenosql.DataFilter;
+import com.colintmiller.simplenosql.NoSQLEntity;
+import com.colintmiller.simplenosql.OperationObserver;
+import com.colintmiller.simplenosql.RetrievalCallback;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.List;
  * Task used to retrieve data in the form of NoSQLEntity objects. This asyncTask takes 1 or 2 parameters. The first
  * parameter is always the bucket name to retrieve data from. The second parameter is optionally the entity id if you're
  * retrieving a specific entity. In either case, a List of results will be returned to the
- * {@link colintmiller.com.simplenosql.RetrievalCallback} that was passed in to get the results. The callback
+ * {@link com.colintmiller.simplenosql.RetrievalCallback} that was passed in to get the results. The callback
  * will be called from the UI thread.
  */
 public class NoSQLRetrieveTask<T> extends AsyncTask<String, Void, List<NoSQLEntity<T>>> {

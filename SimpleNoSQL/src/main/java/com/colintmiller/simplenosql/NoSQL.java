@@ -1,4 +1,4 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 
 import android.content.Context;
@@ -10,7 +10,7 @@ import android.content.Context;
  *
  * Data is stored locally via serialization to a String. By default, the Gson library is used to convert objects to
  * JSON. You may provide custom serializers and deserializers by implementing the
- * {@link colintmiller.com.simplenosql.DataSerializer} and {@link colintmiller.com.simplenosql.DataDeserializer}
+ * {@link com.colintmiller.simplenosql.DataSerializer} and {@link com.colintmiller.simplenosql.DataDeserializer}
  * interfaces and supplying them on construction.
  */
 public class NoSQL
@@ -21,12 +21,12 @@ public class NoSQL
 
     /**
      * Get a builder for performing some sort of data operation. This builder can be used for retrieval, saving, or
-     * deletion of data. See {@link colintmiller.com.simplenosql.QueryBuilder} for more information on how to build
+     * deletion of data. See {@link com.colintmiller.simplenosql.QueryBuilder} for more information on how to build
      * a query.
      * @param context to use for this operation.
      * @param clazz related to this operation. This would be the class of the objects you're saving or retrieving.
      * @param <T> the type of the objects used in this operation.
-     * @return a {@link colintmiller.com.simplenosql.QueryBuilder}.
+     * @return a {@link com.colintmiller.simplenosql.QueryBuilder}.
      */
     public static <T> QueryBuilder<T> with(Context context, Class<T> clazz) {
         QueryBuilder<T> builder = new QueryBuilder<T>(context, clazz);

@@ -1,4 +1,4 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 import java.util.List;
 import java.util.Map;

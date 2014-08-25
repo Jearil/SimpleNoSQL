@@ -1,11 +1,11 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 import com.google.gson.Gson;
 
 /**
- * A {@link colintmiller.com.simplenosql.DataSerializer} and {@link colintmiller.com.simplenosql.DataDeserializer} that
+ * A {@link com.colintmiller.simplenosql.DataSerializer} and {@link com.colintmiller.simplenosql.DataDeserializer} that
  * uses the Gson library to transform objects into JSON and back. This is the default implementation used with
- * {@link colintmiller.com.simplenosql.NoSQL} if none are provided.
+ * {@link com.colintmiller.simplenosql.NoSQL} if none are provided.
  */
 public class GsonSerialization implements DataSerializer, DataDeserializer {
 

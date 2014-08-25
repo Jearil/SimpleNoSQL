@@ -1,10 +1,10 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import colintmiller.com.simplenosql.db.NoSQLDeleteTask;
-import colintmiller.com.simplenosql.db.NoSQLRetrieveTask;
-import colintmiller.com.simplenosql.db.NoSQLSaveTask;
+import com.colintmiller.simplenosql.db.NoSQLDeleteTask;
+import com.colintmiller.simplenosql.db.NoSQLRetrieveTask;
+import com.colintmiller.simplenosql.db.NoSQLSaveTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ import java.util.List;
  * </pre>
  *
  * <p>Save operations can have a single RetrievalCallback which runs on the UI thread. Any operation (including saving) can
- * have any number of {@link colintmiller.com.simplenosql.OperationObserver}'s that can be notified when the operation
+ * have any number of {@link com.colintmiller.simplenosql.OperationObserver}'s that can be notified when the operation
  * is complete.
  */
 public class QueryBuilder<T> {
@@ -91,7 +91,7 @@ public class QueryBuilder<T> {
      *
      * <p>The bucketId of the entity to retrieve for delete. This is REQUIRED for deletion or retrieval. You may further
      * narrow down a retrieval or deletion using an entityId to retrieve or delete a specific entity. For retrieval,
-     * you may also narrow down the results by using a {@link colintmiller.com.simplenosql.DataFilter} instead.
+     * you may also narrow down the results by using a {@link com.colintmiller.simplenosql.DataFilter} instead.
      *
      * @param bucketId to use for retrieval or deletion of data.
      * @return this for chaining.
@@ -133,10 +133,10 @@ public class QueryBuilder<T> {
      * <p>Used in: RETRIEVAL
      *
      * <p>By default, SimpleNoSQL will used Google's Gson library to deserialize data. If you registered a
-     * {@link colintmiller.com.simplenosql.DataDeserializer} with {@link NoSQL#registerDeserializer(DataDeserializer)},
+     * {@link com.colintmiller.simplenosql.DataDeserializer} with {@link NoSQL#registerDeserializer(DataDeserializer)},
      * then this method will have already been called with that custom deserializer. You can use this to override what
      * deserializer will be used for data retrieval. If you always call this method (and
-     * {@link colintmiller.com.simplenosql.QueryBuilder#serializer(DataSerializer)}), or you register both with
+     * {@link com.colintmiller.simplenosql.QueryBuilder#serializer(DataSerializer)}), or you register both with
      * NoSQL, you may remove Gson as a dependency.
      *
      * @param deserializer to use for deserializing data
@@ -151,10 +151,10 @@ public class QueryBuilder<T> {
      * <p>Used in: SAVE
      *
      * <p>By default, SimpleNoSQL will used Google's Gson library to serialize data. If you registered a
-     * {@link colintmiller.com.simplenosql.DataSerializer} with {@link NoSQL#registerSerializer(DataSerializer)},
+     * {@link com.colintmiller.simplenosql.DataSerializer} with {@link NoSQL#registerSerializer(DataSerializer)},
      * then this method will have already been called with that custom serializer. You can use this to override what
      * serializer will be used for data retrieval. If you always call this method (and
-     * {@link colintmiller.com.simplenosql.QueryBuilder#deserializer(DataDeserializer)}), or you register both with
+     * {@link com.colintmiller.simplenosql.QueryBuilder#deserializer(DataDeserializer)}), or you register both with
      * NoSQL, you may remove Gson as a dependency.
      *
      * @param serializer to use for serializing data.

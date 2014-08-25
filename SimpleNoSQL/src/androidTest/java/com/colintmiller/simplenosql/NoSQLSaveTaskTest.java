@@ -1,12 +1,12 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityUnitTestCase;
-import colintmiller.com.simplenosql.db.SimpleNoSQLContract;
-import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
+import com.colintmiller.simplenosql.db.SimpleNoSQLContract;
+import com.colintmiller.simplenosql.db.SimpleNoSQLDBHelper;
 
 import java.util.ArrayList;
 import java.util.List;

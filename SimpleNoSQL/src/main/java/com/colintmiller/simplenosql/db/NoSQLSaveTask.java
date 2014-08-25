@@ -1,11 +1,10 @@
-package colintmiller.com.simplenosql.db;
+package com.colintmiller.simplenosql.db;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import colintmiller.com.simplenosql.DataSerializer;
-import colintmiller.com.simplenosql.NoSQLEntity;
-import colintmiller.com.simplenosql.OperationObserver;
-import colintmiller.com.simplenosql.db.SimpleNoSQLDBHelper;
+import com.colintmiller.simplenosql.DataSerializer;
+import com.colintmiller.simplenosql.NoSQLEntity;
+import com.colintmiller.simplenosql.OperationObserver;
 
 import java.util.List;
 

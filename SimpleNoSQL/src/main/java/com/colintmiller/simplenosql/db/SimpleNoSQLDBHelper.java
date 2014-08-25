@@ -1,19 +1,19 @@
-package colintmiller.com.simplenosql.db;
+package com.colintmiller.simplenosql.db;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import colintmiller.com.simplenosql.DataDeserializer;
-import colintmiller.com.simplenosql.DataFilter;
-import colintmiller.com.simplenosql.DataSerializer;
-import colintmiller.com.simplenosql.NoSQLEntity;
+import com.colintmiller.simplenosql.DataDeserializer;
+import com.colintmiller.simplenosql.DataFilter;
+import com.colintmiller.simplenosql.DataSerializer;
+import com.colintmiller.simplenosql.NoSQLEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static colintmiller.com.simplenosql.db.SimpleNoSQLContract.EntityEntry;
+import static com.colintmiller.simplenosql.db.SimpleNoSQLContract.EntityEntry;
 
 /**
  * The NoSQL datastore is in fact backed by SQL. This might seem counter to the ideals of the project at first. However,

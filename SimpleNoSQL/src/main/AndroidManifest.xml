@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="colintmiller.com.simplenosql">
+    package="com.colintmiller.simplenosql">
 
     <application android:allowBackup="true">
 

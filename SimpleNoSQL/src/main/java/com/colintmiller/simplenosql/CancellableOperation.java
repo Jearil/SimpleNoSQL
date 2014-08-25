@@ -1,4 +1,4 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 /**
  * An operation which can be canceled. If you need to cancel an operation (which will prevent the callbacks from being

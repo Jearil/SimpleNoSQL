@@ -1,4 +1,4 @@
-package colintmiller.com.simplenosql.db;
+package com.colintmiller.simplenosql.db;
 
 import android.provider.BaseColumns;
 

@@ -1,4 +1,4 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 import android.app.Activity;
 import android.content.Context;

@@ -1,13 +1,11 @@
-package colintmiller.com.simplenosql;
+package com.colintmiller.simplenosql;
 
 
 import android.app.Activity;
 import android.test.ActivityUnitTestCase;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 /**
