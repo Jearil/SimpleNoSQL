@@ -1,13 +1,8 @@
 package com.colintmiller.simplenosql;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import com.colintmiller.simplenosql.db.NoSQLDeleteTask;
-import com.colintmiller.simplenosql.db.NoSQLRetrieveTask;
-import com.colintmiller.simplenosql.db.NoSQLSaveTask;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * <p>The main way of interacting with your data is via a QueryBuilder. The QueryBuilder can be used for both storage and
@@ -51,25 +46,16 @@ import java.util.List;
  */
 public class QueryBuilder<T> {
 
-    private Context context;
-    private DataDeserializer deserializer;
-    private DataSerializer serializer;
-    private String bucketId;
-    private String entityId;
-    private DataFilter<T> filter;
-    private DataComparator<T> comparator;
-    private List<OperationObserver> observers;
-    private Class<T> clazz;
+    private NoSQLQuery<T> query;
+    private BlockingQueue<NoSQLQuery<?>> dispatchQueue;
 
     /**
      * Construct a new QueryBuilder for performing a NoSQL operation.
-     * @param context with which to run in.
      * @param clazz related to this operation.
      */
-    public QueryBuilder(Context context, Class<T> clazz) {
-        this.context = context.getApplicationContext();
-        this.clazz = clazz;
-        this.observers = new ArrayList<OperationObserver>();
+    public QueryBuilder(Class<T> clazz, BlockingQueue<NoSQLQuery<?>> queue) {
+        this.query = new NoSQLQuery<T>(clazz);
+        this.dispatchQueue = queue;
     }
 
     /**
@@ -82,7 +68,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> entityId(String entityId) {
-        this.entityId = entityId;
+        query.setEntityId(entityId);
         return this;
     }
 
@@ -97,7 +83,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> bucketId(String bucketId) {
-        this.bucketId = bucketId;
+        query.setBucketId(bucketId);
         return this;
     }
 
@@ -111,7 +97,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> filter(DataFilter<T> filter) {
-        this.filter = filter;
+        query.setFilter(filter);
         return this;
     }
 
@@ -125,7 +111,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> orderBy(DataComparator<T> comparator) {
-        this.comparator = comparator;
+        query.setComparator(comparator);
         return this;
     }
 
@@ -133,7 +119,7 @@ public class QueryBuilder<T> {
      * <p>Used in: RETRIEVAL
      *
      * <p>By default, SimpleNoSQL will used Google's Gson library to deserialize data. If you registered a
-     * {@link com.colintmiller.simplenosql.DataDeserializer} with {@link NoSQL#registerDeserializer(DataDeserializer)},
+     * {@link com.colintmiller.simplenosql.DataDeserializer} with {@link NoSQL#withDeserializer(DataDeserializer)},
      * then this method will have already been called with that custom deserializer. You can use this to override what
      * deserializer will be used for data retrieval. If you always call this method (and
      * {@link com.colintmiller.simplenosql.QueryBuilder#serializer(DataSerializer)}), or you register both with
@@ -143,7 +129,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> deserializer(DataDeserializer deserializer) {
-        this.deserializer = deserializer;
+        query.setDeserializer(deserializer);
         return this;
     }
 
@@ -151,7 +137,7 @@ public class QueryBuilder<T> {
      * <p>Used in: SAVE
      *
      * <p>By default, SimpleNoSQL will used Google's Gson library to serialize data. If you registered a
-     * {@link com.colintmiller.simplenosql.DataSerializer} with {@link NoSQL#registerSerializer(DataSerializer)},
+     * {@link com.colintmiller.simplenosql.DataSerializer} with {@link NoSQL#withSerializer(DataSerializer)},
      * then this method will have already been called with that custom serializer. You can use this to override what
      * serializer will be used for data retrieval. If you always call this method (and
      * {@link com.colintmiller.simplenosql.QueryBuilder#deserializer(DataDeserializer)}), or you register both with
@@ -161,7 +147,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> serializer(DataSerializer serializer) {
-        this.serializer = serializer;
+        query.setSerializer(serializer);
         return this;
     }
 
@@ -178,7 +164,7 @@ public class QueryBuilder<T> {
      * @return this for chaining.
      */
     public QueryBuilder<T> addObserver(OperationObserver observer) {
-        this.observers.add(observer);
+        query.addObserver(observer);
         return this;
     }
 
@@ -198,14 +184,10 @@ public class QueryBuilder<T> {
      * @return a CancellableOperation for canceling the in-flight request before it's finished.
      */
     public CancellableOperation retrieve(RetrievalCallback<T> callback) {
-        NoSQLRetrieveTask<T> retrieveTask = new NoSQLRetrieveTask<T>(context, callback, observers, getDeserializer(), clazz, filter, comparator);
-        if (entityId != null) {
-            retrieveTask.execute(bucketId, entityId);
-        } else {
-            retrieveTask.execute(bucketId);
-        }
+        query.retrieve(callback);
+        dispatchQueue.add(query);
 
-        return getCanceler(retrieveTask);
+        return query;
     }
 
     /**
@@ -221,14 +203,10 @@ public class QueryBuilder<T> {
      * @return a CancellableOperation for canceling the in-flight request before it's finished.
      */
     public CancellableOperation delete() {
-        NoSQLDeleteTask deleteTask = new NoSQLDeleteTask(context, observers);
-        if (entityId != null) {
-            deleteTask.execute(bucketId, entityId);
-        } else {
-            deleteTask.execute(bucketId);
-        }
+        query.delete();
+        dispatchQueue.add(query);
 
-        return getCanceler(deleteTask);
+        return query;
     }
 
     /**
@@ -264,32 +242,8 @@ public class QueryBuilder<T> {
      * @return a CancellableOperation for canceling the in-flight request before it's finished.
      */
     public CancellableOperation save(List<NoSQLEntity<T>> entities) {
-        NoSQLSaveTask<T> saveTask = new NoSQLSaveTask<T>(context, entities, getSerializer(), observers);
-        saveTask.execute();
-        return getCanceler(saveTask);
-    }
-
-    private CancellableOperation getCanceler(final AsyncTask task) {
-        return new CancellableOperation() {
-
-            @Override
-            public void cancel() {
-                task.cancel(true);
-            }
-        };
-    }
-
-    private DataSerializer getSerializer() {
-        if (serializer == null) {
-            return new GsonSerialization();
-        }
-        return serializer;
-    }
-
-    private DataDeserializer getDeserializer() {
-        if (deserializer == null) {
-            return new GsonSerialization();
-        }
-        return deserializer;
+        query.save(entities);
+        dispatchQueue.add(query);
+        return query;
     }
 }

@@ -11,6 +11,7 @@ import com.colintmiller.simplenosql.db.SimpleNoSQLDBHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for saving entities to the DB. This includes saving a single entity or saving multiple entities.
@@ -42,12 +43,12 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(entity);
             }
         });
-        signal.await();
+        signal.await(3, TimeUnit.SECONDS);
 
         assertNotNull("Activity is null when it should not have been", getInstrumentation().getTargetContext());
         SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
@@ -76,13 +77,13 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(allEntities);
             }
         });
 
-        signal.await();
+        signal.await(2, TimeUnit.SECONDS);
 
         SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();

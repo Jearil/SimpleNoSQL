@@ -12,7 +12,7 @@ public class TestUtils {
     public static CountDownLatch cleanBucket(String bucket, Context context) {
         final CountDownLatch signal = new CountDownLatch(1);
 
-        NoSQL.with(context, TestUtils.class)
+        NoSQL.with(context).using(TestUtils.class)
                 .bucketId(bucket)
                 .addObserver(new OperationObserver() {
                     @Override

@@ -11,6 +11,7 @@ import com.colintmiller.simplenosql.db.SimpleNoSQLDBHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests to verify the deletion asyncTask performs as expected
@@ -58,27 +59,27 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(entities);
             }
         });
 
-        signal.await();
+        signal.await(2, TimeUnit.SECONDS);
 
         signal = new CountDownLatch(1);
 
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                NoSQL.with(context).using(SampleBean.class)
                         .bucketId("delete")
                         .entityId("first")
                         .addObserver(getObserver())
                         .delete();
             }
         });
-        signal.await();
+        signal.await(2, TimeUnit.SECONDS);
 
         SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();
@@ -107,25 +108,25 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(lots);
             }
         });
 
-        signal.await();
+        signal.await(2, TimeUnit.SECONDS);
         signal = new CountDownLatch(1);
 
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                NoSQL.with(context, SampleBean.class)
+                NoSQL.with(context).using(SampleBean.class)
                         .bucketId("delete")
                         .addObserver(getObserver())
                         .delete();
             }
         });
-        signal.await();
+        signal.await(2, TimeUnit.SECONDS);
 
         SimpleNoSQLDBHelper sqldbHelper = new SimpleNoSQLDBHelper(getInstrumentation().getTargetContext(), serialization, serialization);
         SQLiteDatabase db = sqldbHelper.getReadableDatabase();

@@ -2,6 +2,13 @@ package com.colintmiller.simplenosql;
 
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import com.colintmiller.simplenosql.threading.DataDispatcher;
+import com.colintmiller.simplenosql.threading.QueryDelivery;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Simple access to a NoSQL store. You can save, retrieve, and delete any entity. Saving performs an insert
@@ -15,29 +22,22 @@ import android.content.Context;
  */
 public class NoSQL
 {
-    private static DataSerializer registeredSerializer;
-    private static DataDeserializer registeredDeserializer;
     private static NoSQL singleton;
 
     private Context appContext;
     private DataSerializer singleSerializer;
     private DataDeserializer singleDeserializer;
 
-    private NoSQL(Context context) {
-        this.appContext = context.getApplicationContext();
-    }
+    private final BlockingQueue<NoSQLQuery<?>> queryQueue;
+    private DataDispatcher[] dispatchers;
+    private QueryDelivery delivery;
 
-    /**
-     * Get a builder for performing some sort of data operation. This builder can be used for retrieval, saving, or
-     * deletion of data. See {@link com.colintmiller.simplenosql.QueryBuilder} for more information on how to build
-     * a query.
-     * @param context to use for this operation.
-     * @param clazz related to this operation. This would be the class of the objects you're saving or retrieving.
-     * @param <T> the type of the objects used in this operation.
-     * @return a {@link com.colintmiller.simplenosql.QueryBuilder}.
-     */
-    public static <T> QueryBuilder<T> with(Context context, Class<T> clazz) {
-        return withUsing(context, clazz, registeredSerializer, registeredDeserializer);
+    private NoSQL(Context context, int numberOfThreads) {
+        this.appContext = context.getApplicationContext();
+        queryQueue = new LinkedBlockingQueue<NoSQLQuery<?>>();
+        dispatchers = new DataDispatcher[numberOfThreads]; //TODO: Add a thread pool size
+        this.delivery = new QueryDelivery(new Handler(Looper.getMainLooper()));
+        start();
     }
 
     /**
@@ -50,10 +50,14 @@ public class NoSQL
      * @return a NoSQL object for creating queries.
      */
     public static NoSQL with(Context context) {
+        return with(context, 4);
+    }
+
+    public static NoSQL with(Context context, int numberOfThreads) {
         if (singleton == null) {
             synchronized (NoSQL.class) {
                 if (singleton == null) {
-                    singleton = new NoSQL(context);
+                    singleton = new NoSQL(context, numberOfThreads);
                 }
             }
         }
@@ -71,7 +75,7 @@ public class NoSQL
      * @return a {@link com.colintmiller.simplenosql.QueryBuilder}.
      */
     public <T> QueryBuilder<T> using(Class<T> clazz) {
-        return withUsing(appContext, clazz, singleSerializer, singleDeserializer);
+        return withUsing(clazz, singleSerializer, singleDeserializer, queryQueue);
     }
 
     /**
@@ -100,31 +104,26 @@ public class NoSQL
         return this;
     }
 
-    /**
-     * By default, SimpleNoSQL will use Google's Gson library for serialization and deserialization. You may override
-     * this globally here by registering a DataSerializer with whatever serialization method you'd like to use. If you
-     * register both a Serializer and Deserializer before making any database calls, you may safely remove gson as
-     * a dependency.
-     * @param serializer to use in all future NoSQL requests.
-     */
-    public static void registerSerializer(DataSerializer serializer) {
-        NoSQL.registeredSerializer = serializer;
+    public void start() {
+        stop(); // in case there's already threads started.
+
+        for(int i = 0; i < dispatchers.length; i++) {
+            DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery);
+            dispatchers[i] = dispatcher;
+            dispatcher.start();
+        }
     }
 
-    /**
-     * By default, SimpleNoSQL will use Google's Gson library for serialization and deserialization. You may override
-     * this globally here by registering a DataSerializer with whatever serialization method you'd like to use. If you
-     * register both a Serializer and Deserializer before making any database calls, you may safely remove gson as
-     * a dependency.
-     * @param deserializer to use in all future NoSQL requests.
-     */
-    public static void registerDeserializer(DataDeserializer deserializer) {
-        NoSQL.registeredDeserializer = deserializer;
+    public void stop() {
+        for (DataDispatcher dispatcher : dispatchers) {
+            if (dispatcher != null) {
+                dispatcher.quit();
+            }
+        }
     }
 
-
-    private static <T> QueryBuilder<T> withUsing(Context context, Class<T> clazz, DataSerializer serializer, DataDeserializer deserializer) {
-        QueryBuilder<T> builder = new QueryBuilder<T>(context, clazz);
+    private static <T> QueryBuilder<T> withUsing(Class<T> clazz, DataSerializer serializer, DataDeserializer deserializer, BlockingQueue<NoSQLQuery<?>> queue) {
+        QueryBuilder<T> builder = new QueryBuilder<T>(clazz, queue);
         if (serializer != null) {
             builder.serializer(serializer);
         }
@@ -133,5 +132,15 @@ public class NoSQL
         }
 
         return builder;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        for (DataDispatcher dispatcher : dispatchers) {
+            if (dispatcher != null) {
+                dispatcher.quit();
+            }
+        }
+        super.finalize();
     }
 }
