@@ -53,6 +53,16 @@ public class NoSQL
         return with(context, 4);
     }
 
+    /**
+     *Get a NoSQL instance based on the given Context. Will use the applicationContext of the given context for
+     * requests. This instance is safe to save and use later with the {@link NoSQL#using(Class)} method to create a
+     * QueryBuilder. You may also register serializers and deserializers with this instance. Note, an instance of NoSQL
+     * will ignore the serializer and deserializer set with the 'register' static methods.
+     *
+     * @param context to use for future operations.
+     * @param numberOfThreads to use for data operations
+     * @return a NoSQL object for creating queries.
+     */
     public static NoSQL with(Context context, int numberOfThreads) {
         if (singleton == null) {
             synchronized (NoSQL.class) {
@@ -104,6 +114,10 @@ public class NoSQL
         return this;
     }
 
+    /**
+     * Starts our dispatcher threads. This is called automatically when creating a NoSQL object. It can be called again
+     * if {@link NoSQL#stop} has been called to restart the dispatch threads.
+     */
     public void start() {
         stop(); // in case there's already threads started.
 
@@ -114,6 +128,9 @@ public class NoSQL
         }
     }
 
+    /**
+     * Stop the dispatcher threads. No more queries can be performed until {@link NoSQL#start} is called.
+     */
     public void stop() {
         for (DataDispatcher dispatcher : dispatchers) {
             if (dispatcher != null) {
