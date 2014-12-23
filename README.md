@@ -92,7 +92,7 @@ Development
 -----------
 This project is still very new and under active development. The API is in a wildly fluctuating state as I figure out
 the best way of making it simple to access documents. The current API uses gson for serialization and deserialization.
-You can access snapshots on sonatype by adding the following to your modules build.gradle:
+You can access releases on sonatype by adding the following to your modules build.gradle:
 
 ```groovy
 repositories {
@@ -102,7 +102,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.colintmiller:simplenosql:0.2.3'
+    compile 'com.colintmiller:simplenosql:0.5'
 }
 ```
 
