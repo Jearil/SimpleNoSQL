@@ -2,7 +2,7 @@ SimpleNoSQL
 ===========
 
 A simple NoSQL client for Android. If you ever wanted to just save some data but didn't really want to worry about
-where it was going to be stored and didn't want to go through the hassel of setting up a database manually, this
+where it was going to be stored and didn't want to go through the hassle of setting up a database manually, this
 library can really speed things up. Saving data is pretty easy:
 
 ```java

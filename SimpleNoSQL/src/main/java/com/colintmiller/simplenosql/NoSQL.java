@@ -8,7 +8,9 @@ import com.colintmiller.simplenosql.threading.DataDispatcher;
 import com.colintmiller.simplenosql.threading.QueryDelivery;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * Simple access to a NoSQL store. You can save, retrieve, and delete any entity. Saving performs an insert
@@ -120,9 +122,10 @@ public class NoSQL
      */
     public void start() {
         stop(); // in case there's already threads started.
+        ConcurrentHashMap<String, ReadWriteLock> locks = new ConcurrentHashMap<>();
 
         for(int i = 0; i < dispatchers.length; i++) {
-            DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery);
+            DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery, locks);
             dispatchers[i] = dispatcher;
             dispatcher.start();
         }

@@ -10,6 +10,9 @@ import com.colintmiller.simplenosql.db.SimpleNoSQLDBHelper;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Provides a thread for performing data operations based on a queue of operations.
@@ -26,11 +29,14 @@ public class DataDispatcher extends Thread {
     private BlockingQueue<NoSQLQuery<?>> queue;
     private Context context;
     private QueryDelivery delivery;
+    private ConcurrentHashMap<String, ReadWriteLock> locks;
 
-    public DataDispatcher(BlockingQueue<NoSQLQuery<?>> queue, Context context, QueryDelivery delivery) {
+    public DataDispatcher(BlockingQueue<NoSQLQuery<?>> queue, Context context, QueryDelivery delivery, ConcurrentHashMap<String, ReadWriteLock> locks) {
         this.queue = queue;
         this.context = context;
         this.delivery = delivery;
+        this.locks = locks;
+        
     }
 
     /**
@@ -85,27 +91,37 @@ public class DataDispatcher extends Thread {
     }
 
     private <T> void save(NoSQLQuery<T> query, SimpleNoSQLDBHelper helper) {
+        obtainWriteLock(query.getBucketId());
         for (NoSQLEntity<T> entity : query.getEntities()) {
             helper.saveEntity(entity);
         }
+        releaseWriteLock(query.getBucketId());
     }
 
     private <T> void delete(NoSQLQuery<T> query, SimpleNoSQLDBHelper helper) {
-        if (query.getBucketId() != null && query.getEntityId() != null) {
-            helper.deleteEntity(query.getBucketId(), query.getEntityId());
-        } else if (query.getBucketId() != null) {
-            helper.deleteBucket(query.getBucketId());
+        String bucket = query.getBucketId();
+        
+        obtainWriteLock(bucket);
+        if (bucket != null && query.getEntityId() != null) {
+            helper.deleteEntity(bucket, query.getEntityId());
+        } else if (bucket != null) {
+            helper.deleteBucket(bucket);
         }
+        releaseWriteLock(bucket);
     }
 
     private <T> void retrieve(NoSQLQuery<T> query, SimpleNoSQLDBHelper helper) {
-        if (query.getBucketId() != null && query.getEntityId() != null) {
-            List<NoSQLEntity<T>> entityList = helper.getEntities(query.getBucketId(), query.getEntityId(), query.getClazz(), query.getFilter());
+        String bucket = query.getBucketId();
+        
+        obtainReadLock(bucket);
+        if (bucket != null && query.getEntityId() != null) {
+            List<NoSQLEntity<T>> entityList = helper.getEntities(bucket, query.getEntityId(), query.getClazz(), query.getFilter());
             sortAndDeliver(entityList, query);
-        } else if (query.getBucketId() != null) {
-            List<NoSQLEntity<T>> entityList = helper.getEntities(query.getBucketId(), query.getClazz(), query.getFilter());
+        } else if (bucket != null) {
+            List<NoSQLEntity<T>> entityList = helper.getEntities(bucket, query.getClazz(), query.getFilter());
             sortAndDeliver(entityList, query);
         }
+        releaseReadLock(bucket);
     }
 
     private <T> void sortAndDeliver(List<NoSQLEntity<T>> entities, NoSQLQuery<T> query) {
@@ -114,5 +130,47 @@ public class DataDispatcher extends Thread {
             Collections.sort(entities, comparator);
         }
         delivery.performCallback(query.getCallback(), entities);
+    }
+
+    private void obtainReadLock(String bucket) {
+        if (bucket != null) {
+            ReadWriteLock lock = getReadWriteLock(bucket);
+            lock.readLock().lock();
+        }
+    }
+    
+    private void releaseReadLock(String bucket) {
+        if (bucket != null) {
+            ReadWriteLock lock = getReadWriteLock(bucket);
+            lock.readLock().unlock();
+        }
+    }
+    
+    private void obtainWriteLock(String bucket) {
+        if (bucket != null) {
+            ReadWriteLock lock = getReadWriteLock(bucket);
+            lock.writeLock().lock();
+        }
+    }
+    
+    private void releaseWriteLock(String bucket) {
+        if (bucket != null) {
+            ReadWriteLock lock = getReadWriteLock(bucket);
+            lock.writeLock().unlock();
+        }
+    }
+
+    private ReadWriteLock getReadWriteLock(String bucket) {
+        if (!locks.containsKey(bucket)) {
+            ReadWriteLock newLock = new ReentrantReadWriteLock();
+            ReadWriteLock possibleLock = locks.putIfAbsent(bucket, newLock);
+
+            // if a value already exists (from another thread) we need to use that one
+            if (possibleLock != null) {
+                return possibleLock;
+            }
+            return newLock;
+        }
+        return locks.get(bucket);
     }
 }
