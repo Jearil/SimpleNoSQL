@@ -122,7 +122,7 @@ public class NoSQL
      */
     public void start() {
         stop(); // in case there's already threads started.
-        ConcurrentHashMap<String, ReadWriteLock> locks = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, ReadWriteLock> locks = new ConcurrentHashMap<String, ReadWriteLock>();
 
         for(int i = 0; i < dispatchers.length; i++) {
             DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery, locks);
