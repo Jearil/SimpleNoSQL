@@ -3,6 +3,7 @@ package com.colintmiller.simplenosql;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import com.colintmiller.simplenosql.threading.DataDispatcher;
 import com.colintmiller.simplenosql.threading.QueryDelivery;
@@ -33,12 +34,15 @@ public class NoSQL
     private final BlockingQueue<NoSQLQuery<?>> queryQueue;
     private DataDispatcher[] dispatchers;
     private QueryDelivery delivery;
+    private HandlerThread deliveryThread;
 
     private NoSQL(Context context, int numberOfThreads) {
         this.appContext = context.getApplicationContext();
         queryQueue = new LinkedBlockingQueue<NoSQLQuery<?>>();
         dispatchers = new DataDispatcher[numberOfThreads]; //TODO: Add a thread pool size
-        this.delivery = new QueryDelivery(new Handler(Looper.getMainLooper()));
+        deliveryThread = new HandlerThread("NoSQLDelivery");
+        deliveryThread.start();
+        this.delivery = new QueryDelivery(new Handler(deliveryThread.getLooper()));
         start();
     }
 
