@@ -37,6 +37,8 @@ public class SynchronousRetrieval<T> implements RetrievalCallback<T> {
     /**
      * Synchronous blocking call to get results with an additional timer option. You MUST have made a .retrieve() call
      * with this object before calling this method or it will timeout after the specified time and return a null result.
+     * This call should never be made on the main thread.
+     *
      * @param timeout the amount of time to wait for a timeout
      * @param unit the specified unit to apply to the timeout
      * @return the results of your query, waiting until the results arrive.

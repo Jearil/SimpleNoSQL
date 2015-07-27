@@ -102,7 +102,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.colintmiller:simplenosql:0.5'
+    compile 'com.colintmiller:simplenosql:0.5.1'
 }
 ```
 
