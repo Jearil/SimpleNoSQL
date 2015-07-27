@@ -40,9 +40,8 @@ public class SynchronousRetrieval<T> implements RetrievalCallback<T> {
      * @param timeout the amount of time to wait for a timeout
      * @param unit the specified unit to apply to the timeout
      * @return the results of your query, waiting until the results arrive.
-     * @throws IllegalThreadStateException if you attempt to call from the UI thread.
      */
-    public List<NoSQLEntity<T>> getSynchronousResults(long timeout, TimeUnit unit) throws IllegalThreadStateException {
+    public List<NoSQLEntity<T>> getSynchronousResults(long timeout, TimeUnit unit) {
         if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
             Log.e(TAG, "You should not be getting synchronous results from the UI thread!!");
         }
