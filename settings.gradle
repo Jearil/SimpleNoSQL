@@ -1,1 +1,1 @@
-include ':SimpleNoSQL'
+include ':SimpleNoSQL', ':sampleapp'
