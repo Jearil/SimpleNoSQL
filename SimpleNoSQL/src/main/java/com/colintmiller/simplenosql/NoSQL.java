@@ -7,6 +7,8 @@ import android.os.Looper;
 import com.colintmiller.simplenosql.threading.DataDispatcher;
 import com.colintmiller.simplenosql.threading.QueryDelivery;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,6 +28,8 @@ public class NoSQL
 {
     private static NoSQL singleton;
 
+    private static Map<QueryDelivery, NoSQL> deliveryQueues = new HashMap<QueryDelivery, NoSQL>();
+
     private Context appContext;
     private DataSerializer singleSerializer;
     private DataDeserializer singleDeserializer;
@@ -35,10 +39,14 @@ public class NoSQL
     private QueryDelivery delivery;
 
     private NoSQL(Context context, int numberOfThreads) {
+        this(context, numberOfThreads, new QueryDelivery(new Handler(Looper.getMainLooper())));
+    }
+
+    private NoSQL(Context context, int numberOfThreads, QueryDelivery delivery) {
         this.appContext = context.getApplicationContext();
         queryQueue = new LinkedBlockingQueue<NoSQLQuery<?>>();
         dispatchers = new DataDispatcher[numberOfThreads]; //TODO: Add a thread pool size
-        this.delivery = new QueryDelivery(new Handler(Looper.getMainLooper()));
+        this.delivery = delivery;
         start();
     }
 
@@ -75,6 +83,34 @@ public class NoSQL
         }
 
         return singleton;
+    }
+
+    /**
+     * Get a NoSQL instance based on the given Context and QueryDelivery. Will use the applicationContext of the given
+     * context for requests. This instance is safe to save and use later with the {@link NoSQL#using(Class)} method to
+     * create a QueryBuilder. You may also register serializers and deserializers with this instance. Note, an instance
+     * of NoSQL will ignore the serializer and deserializer set with the 'register' static methods.
+     * <p/>
+     * Calling this method will create a whole new set of dispatcher threads and use up resources for each different
+     * QueryDelivery you use. If you plan on using a custom QueryDelivery, make sure you pass the same instance in each
+     * time you call this method or you will cause a memory leak. This method should almost never be used unless you
+     * really know what you're doing and need delivery of results to happen off the the UI thread. You have been warned.
+     *
+     * @param context         to use for future operations.
+     * @param numberOfThreads to use for data operations
+     * @param delivery        The QueryDelivery to use for delivering results.
+     * @return a NoSQL object for creating queries.
+     */
+    public static NoSQL with(Context context, int numberOfThreads, QueryDelivery delivery) {
+        if (!deliveryQueues.containsKey(delivery)) {
+            synchronized (NoSQL.class) {
+                if (!deliveryQueues.containsKey(delivery)) {
+                    deliveryQueues.put(delivery, new NoSQL(context, numberOfThreads, delivery));
+                }
+            }
+        }
+
+        return deliveryQueues.get(delivery);
     }
 
     /**

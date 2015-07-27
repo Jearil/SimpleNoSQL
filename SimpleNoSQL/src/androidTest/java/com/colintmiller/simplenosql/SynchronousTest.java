@@ -2,7 +2,10 @@ package com.colintmiller.simplenosql;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.test.ActivityUnitTestCase;
+import com.colintmiller.simplenosql.threading.QueryDelivery;
 import com.colintmiller.simplenosql.toolbox.SynchronousRetrieval;
 
 import java.util.ArrayList;
@@ -55,6 +58,49 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
         SynchronousRetrieval<SampleBean> retrievalCallback = new SynchronousRetrieval<SampleBean>();
         NoSQL.with(context).using(SampleBean.class).bucketId("dne").retrieve(retrievalCallback);
         List<NoSQLEntity<SampleBean>> results = retrievalCallback.getSynchronousResults();
+        assertEquals(1, results.size());
+    }
+
+    /**
+     * Honestly why anyone would ever want to block the UI thread to wait for their data is a mystery. But in case you
+     * feel your foot is too healthy and you'd like to shoot it, here's how.
+     *
+     * @throws Throwable if something goes horribly wrong
+     */
+    public void testSynchronousUIRetrieval() throws Throwable {
+
+        final CountDownLatch lock = new CountDownLatch(1);
+        final List<NoSQLEntity<SampleBean>> results = new ArrayList<NoSQLEntity<SampleBean>>();
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final CountDownLatch saveLock = new CountDownLatch(1);
+                SampleBean item = new SampleBean();
+                item.setName("item");
+                HandlerThread thread = new HandlerThread("NoSQLDelivery");
+                thread.start();
+                QueryDelivery delivery = new QueryDelivery(new Handler(thread.getLooper()));
+                NoSQL.with(context, 1, delivery)
+                        .using(SampleBean.class)
+                        .addObserver(new OperationObserver() {
+                            @Override
+                            public void hasFinished() {
+                                saveLock.countDown();
+                            }
+                        }).save(new NoSQLEntity<SampleBean>("dne", "1", item));
+
+                SynchronousRetrieval<SampleBean> retrievalCallback = new SynchronousRetrieval<SampleBean>();
+                saveLock.countDown();
+
+                NoSQL.with(context, 1, delivery).using(SampleBean.class).bucketId("dne").retrieve(retrievalCallback);
+                results.addAll(retrievalCallback.getSynchronousResults());
+
+                lock.countDown();
+            }
+        });
+
+        lock.await();
         assertEquals(1, results.size());
     }
 }

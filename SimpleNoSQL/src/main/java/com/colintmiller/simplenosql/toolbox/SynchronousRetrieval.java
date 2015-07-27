@@ -1,5 +1,6 @@
 package com.colintmiller.simplenosql.toolbox;
 
+import android.os.Looper;
 import android.util.Log;
 import com.colintmiller.simplenosql.NoSQLEntity;
 import com.colintmiller.simplenosql.RetrievalCallback;
@@ -39,8 +40,12 @@ public class SynchronousRetrieval<T> implements RetrievalCallback<T> {
      * @param timeout the amount of time to wait for a timeout
      * @param unit the specified unit to apply to the timeout
      * @return the results of your query, waiting until the results arrive.
+     * @throws IllegalThreadStateException if you attempt to call from the UI thread.
      */
-    public List<NoSQLEntity<T>> getSynchronousResults(long timeout, TimeUnit unit) {
+    public List<NoSQLEntity<T>> getSynchronousResults(long timeout, TimeUnit unit) throws IllegalThreadStateException {
+        if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+            Log.e(TAG, "You should not be getting synchronous results from the UI thread!!");
+        }
         try {
             lock.await(timeout, unit);
         } catch (InterruptedException e) {
