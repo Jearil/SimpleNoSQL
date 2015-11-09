@@ -23,7 +23,7 @@ Later, when you want to retrieve it, you can use a callback interface and the bu
 
 ```java
 NoSQL.with(context).using(SampleBean.class)
-    .bucket("bucket")
+    .bucketId("bucket")
     .entityId("entityId")
     .retrieve(new RetrievalCallback<SampleBean>() {
     public void retrieveResults(List<NoSQLEntity<SampleBean> entities) {
@@ -37,7 +37,7 @@ If you'd like to delete data, you can use
 
 ```java
 NoSQL.with(context).using(SampleBean.class)
-    .bucket("bucket")
+    .bucketId("bucket")
     .entityId("entityId")
     .delete()
 ```
@@ -46,7 +46,7 @@ To delete a single entity. Or you can delete an entire bucket via:
 
 ```java
 NoSQL.with(context).using(SampleBean.class)
-    .bucket("bucket")
+    .bucketId("bucket")
     .delete()
 ```
 
@@ -55,7 +55,7 @@ DataComparator.
 
 ```java
 NoSQL.with(context).using(SampleBean.class)
-    .bucket("bucket")
+    .bucketId("bucket")
     .filter(new DataFilter<SampleBean>() {
         public boolean isIncluded(NoSQLEntity<SampleBean> item) {
             if (item != null && item.getData() != null) {
