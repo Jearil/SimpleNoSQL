@@ -22,7 +22,7 @@ import java.util.concurrent.BlockingQueue;
  * <p>A sample of a retrieval operation for that data:
  * <pre>
  *     QueryBuilder<String> builder = new QueryBuilder<String>(context, String.class)
- *       .withBucket("bucket1")
+ *       .bucketId("bucket1")
  *       .entityId("string1")
  *       .retrieve(new RetrievalCallback<String>() {
  *           public void retrievedResults(List<NoSQLEntity<String>> entities) {
@@ -35,7 +35,7 @@ import java.util.concurrent.BlockingQueue;
  * <p>A sample deletion of that same data:
  * <pre>
  *     QueryBuilder<String> builder = new QueryBuilder<String>(context, String.class)
- *       .withBucket("bucket1")
+ *       .bucketId("bucket1")
  *       .entityId("string1")
  *       .delete();
  * </pre>
