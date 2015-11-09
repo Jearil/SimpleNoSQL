@@ -24,7 +24,7 @@ Later, when you want to retrieve it, you can use a callback interface and the bu
 ```java
 NoSQL.with(context).using(SampleBean.class)
     .bucket("bucket")
-    .entity("entityId")
+    .entityId("entityId")
     .retrieve(new RetrievalCallback<SampleBean>() {
     public void retrieveResults(List<NoSQLEntity<SampleBean> entities) {
         // Display results or something 
@@ -38,7 +38,7 @@ If you'd like to delete data, you can use
 ```java
 NoSQL.with(context).using(SampleBean.class)
     .bucket("bucket")
-    .entity("entityId")
+    .entityId("entityId")
     .delete()
 ```
 
