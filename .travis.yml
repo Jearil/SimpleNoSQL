@@ -1,11 +1,20 @@
 language: android
+jdk: oraclejdk7
+# turn off caching to avoid caching problems
+cache: false
+# Use travis container-based infrastructure
 sudo: false
+env:
+  global:
+    - ADB_INSTALL_TIMEOUT=8
+
 # Emulator Management: Create, Start and Wait
 before_script:
   - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
+  
 android:
   components:
     - build-tools-21.1.1
