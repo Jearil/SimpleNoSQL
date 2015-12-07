@@ -32,7 +32,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
     private static final String TEXT_TYPE = " TEXT";
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + EntityEntry.TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + EntityEntry.TABLE_NAME + " (" +
             EntityEntry._ID + " INTEGER PRIMARY KEY," +
             EntityEntry.COLUMN_NAME_BUCKET_ID + TEXT_TYPE + COMMA_SEP +
             EntityEntry.COLUMN_NAME_ENTITY_ID + TEXT_TYPE + COMMA_SEP +
