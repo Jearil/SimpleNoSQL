@@ -25,11 +25,11 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
     private DataSerializer serializer;
     private DataDeserializer deserializer;
 
-    public static int DATABASE_VERSION = 2;
+    public static int DATABASE_VERSION = 3;
     public static String DATABASE_NAME = "simplenosql.db";
 
     // DB Creation
-    private static final String TEXT_TYPE = " TEXT";
+    private static final String TEXT_TYPE = " BLOB";
     private static final String COMMA_SEP = ",";
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE IF NOT EXISTS " + EntityEntry.TABLE_NAME + " (" +
@@ -37,8 +37,9 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
             EntityEntry.COLUMN_NAME_BUCKET_ID + TEXT_TYPE + COMMA_SEP +
             EntityEntry.COLUMN_NAME_ENTITY_ID + TEXT_TYPE + COMMA_SEP +
             EntityEntry.COLUMN_NAME_DATA + TEXT_TYPE + COMMA_SEP +
-            " UNIQUE(" + EntityEntry.COLUMN_NAME_BUCKET_ID + COMMA_SEP + EntityEntry.COLUMN_NAME_ENTITY_ID + ") ON CONFLICT REPLACE"
-            + " )";
+            " UNIQUE(" + EntityEntry.COLUMN_NAME_BUCKET_ID + COMMA_SEP +
+                    EntityEntry.COLUMN_NAME_ENTITY_ID + ") ON CONFLICT REPLACE)";
+
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE " + EntityEntry.TABLE_NAME;
 
@@ -56,9 +57,28 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO: Be non-destructive when doing a real upgrade.
-        db.execSQL(SQL_DELETE_ENTRIES);
+        switch (oldVersion) {
+            case 1:
+                db.execSQL(SQL_DELETE_ENTRIES);
+                onCreate(db);
+                break;
+            case 2:
+                upgradeFrom2To3(db);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void upgradeFrom2To3(SQLiteDatabase db) {
+        final String tempTableName = "OLD_TABLE";
+        final String alter = "ALTER TABLE " + EntityEntry.TABLE_NAME + " RENAME TO " + tempTableName;
+        final String copyData = "INSERT INTO " + EntityEntry.TABLE_NAME + " SELECT * FROM " + tempTableName;
+        final String deleteTemp = "DROP TABLE " + tempTableName;
+        db.execSQL(alter);
         onCreate(db);
+        db.execSQL(copyData);
+        db.execSQL(deleteTemp);
     }
 
     public <T> void saveEntity(NoSQLEntity<T> entity) {
@@ -122,7 +142,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 String bucketId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_BUCKET_ID));
                 String entityId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_ENTITY_ID));
-                String data = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
+                byte[] data = cursor.getBlob(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
 
                 NoSQLEntity<T> entity = new NoSQLEntity<T>(bucketId, entityId);
                 entity.setData(deserializer.deserialize(data, clazz));

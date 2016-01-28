@@ -34,7 +34,7 @@ public class NoSQLEntityTest extends ActivityUnitTestCase {
         NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("bucket", "id");
         entity.setData(testData);
 
-        String jsonData = serialization.serialize(entity.getData());
+        byte[] jsonData = serialization.serialize(entity.getData());
 
         NoSQLEntity<SampleBean> hydrated = new NoSQLEntity<SampleBean>("bucket", "id2");
         hydrated.setData(serialization.deserialize(jsonData, SampleBean.class));

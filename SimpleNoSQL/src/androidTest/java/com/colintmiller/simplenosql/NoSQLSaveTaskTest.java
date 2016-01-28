@@ -98,7 +98,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         assertEquals(cursor.getCount(), 3);
         int counter = 0;
         while(cursor.moveToNext()) {
-            String data = cursor.getString(cursor.getColumnIndex(SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA));
+            byte[] data = cursor.getBlob(cursor.getColumnIndex(SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA));
             NoSQLEntity<SampleBean> bean = new NoSQLEntity<SampleBean>("bucket", "id");
             bean.setData(serialization.deserialize(data, SampleBean.class));
             assertEquals(counter, bean.getData().getId());

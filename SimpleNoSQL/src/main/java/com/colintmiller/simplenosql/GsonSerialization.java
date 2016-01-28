@@ -20,12 +20,12 @@ public class GsonSerialization implements DataSerializer, DataDeserializer {
     }
 
     @Override
-    public <T> T deserialize(String data, Class<T> clazz) {
-        return gson.fromJson(data, clazz);
+    public <T> T deserialize(byte[] data, Class<T> clazz) {
+        return gson.fromJson(new String(data), clazz);
     }
 
     @Override
-    public <T> String serialize(T data) {
-        return gson.toJson(data);
+    public <T> byte[] serialize(T data) {
+        return gson.toJson(data).getBytes();
     }
 }
