@@ -20,7 +20,7 @@ import static com.colintmiller.simplenosql.db.SimpleNoSQLContract.EntityEntry;
  * the framework prevents the user from having to interact with SQL directly and deals purely with documents.
  * The database is still useful in implementation however for it's indexing retrieval and storage options.
  */
-public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
+public class SimpleNoSQLDBHelper extends SQLiteOpenHelper implements DataStore {
 
     private DataSerializer serializer;
     private DataDeserializer deserializer;
@@ -70,7 +70,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void upgradeFrom2To3(SQLiteDatabase db) {
+    private void upgradeFrom2To3(SQLiteDatabase db) {
         final String tempTableName = "OLD_TABLE";
         final String alter = "ALTER TABLE " + EntityEntry.TABLE_NAME + " RENAME TO " + tempTableName;
         final String copyData = "INSERT INTO " + EntityEntry.TABLE_NAME + " SELECT * FROM " + tempTableName;
@@ -81,6 +81,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         db.execSQL(deleteTemp);
     }
 
+    @Override
     public <T> void saveEntity(NoSQLEntity<T> entity) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -91,20 +92,26 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void deleteEntity(String bucket, String entityId) {
+    @Override
+    public boolean deleteEntity(String bucket, String entityId) {
         SQLiteDatabase db = getWritableDatabase();
         String[] args = {bucket, entityId};
-        db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=? and " + EntityEntry.COLUMN_NAME_ENTITY_ID + "=?", args);
+        int deleted = db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=? and " + EntityEntry
+                .COLUMN_NAME_ENTITY_ID + "=?", args);
         db.close();
+        return deleted != 0;
     }
 
-    public void deleteBucket(String bucket) {
+    @Override
+    public boolean deleteBucket(String bucket) {
         SQLiteDatabase db = getWritableDatabase();
         String[] args = {bucket};
-        db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=?", args);
+        int deleted = db.delete(EntityEntry.TABLE_NAME, EntityEntry.COLUMN_NAME_BUCKET_ID + "=?", args);
         db.close();
+        return deleted != 0;
     }
 
+    @Override
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz, DataFilter<T> filter) {
         if (bucket == null || entityId == null) {
             return new ArrayList<NoSQLEntity<T>>(0);
@@ -114,10 +121,8 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         return getEntities(selection, selectionArgs, clazz, filter);
     }
 
-    public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz) {
-        return getEntities(bucket, entityId, clazz, null);
-    }
 
+    @Override
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz, DataFilter<T> filter) {
         if (bucket == null) {
             return new ArrayList<NoSQLEntity<T>>(0);
@@ -125,10 +130,6 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper {
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=?";
         String[] selectionArgs = {bucket};
         return getEntities(selection, selectionArgs, clazz, filter);
-    }
-
-    public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz) {
-        return getEntities(bucket, clazz, null);
     }
 
     private <T> List<NoSQLEntity<T>> getEntities(String selection, String[] selectionArgs, Class<T> clazz, DataFilter<T> filter) {

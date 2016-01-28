@@ -5,7 +5,9 @@ import android.os.Process;
 import com.colintmiller.simplenosql.DataComparator;
 import com.colintmiller.simplenosql.NoSQLEntity;
 import com.colintmiller.simplenosql.NoSQLQuery;
-import com.colintmiller.simplenosql.db.SimpleNoSQLDBHelper;
+import com.colintmiller.simplenosql.db.DataStore;
+import com.colintmiller.simplenosql.db.DataStoreType;
+import com.colintmiller.simplenosql.db.SimpleDataStoreFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,13 +32,19 @@ public class DataDispatcher extends Thread {
     private Context context;
     private QueryDelivery delivery;
     private ConcurrentHashMap<String, ReadWriteLock> locks;
+    private SimpleDataStoreFactory dataStoreFactory;
 
-    public DataDispatcher(BlockingQueue<NoSQLQuery<?>> queue, Context context, QueryDelivery delivery, ConcurrentHashMap<String, ReadWriteLock> locks) {
+    public DataDispatcher(
+            BlockingQueue<NoSQLQuery<?>> queue,
+            Context context,
+            QueryDelivery delivery,
+            ConcurrentHashMap<String, ReadWriteLock> locks,
+            DataStoreType type) {
         this.queue = queue;
         this.context = context;
         this.delivery = delivery;
         this.locks = locks;
-        
+        this.dataStoreFactory = new SimpleDataStoreFactory(type);
     }
 
     /**
@@ -57,7 +65,6 @@ public class DataDispatcher extends Thread {
         while (true) {
             try {
                 query = queue.take();
-
             } catch (InterruptedException e) {
                 if (hasQuit) {
                     return;
@@ -70,17 +77,20 @@ public class DataDispatcher extends Thread {
                 continue;
             }
 
-            SimpleNoSQLDBHelper helper = new SimpleNoSQLDBHelper(context, query.getSerializer(), query.getDeserializer());
+            DataStore dataStore = dataStoreFactory.getDataStore(
+                    context,
+                    query.getSerializer(),
+                    query.getDeserializer());
 
             switch (query.getOperation()) {
                 case SAVE:
-                    save(query, helper);
+                    save(query, dataStore);
                     break;
                 case DELETE:
-                    delete(query, helper);
+                    delete(query, dataStore);
                     break;
                 case RETRIEVE:
-                    retrieve(query, helper);
+                    retrieve(query, dataStore);
                     break;
                 default:
                     throw new IllegalStateException("Should not have a null operation");
@@ -90,35 +100,35 @@ public class DataDispatcher extends Thread {
         }
     }
 
-    private <T> void save(NoSQLQuery<T> query, SimpleNoSQLDBHelper helper) {
+    private <T> void save(NoSQLQuery<T> query, DataStore dataStore) {
         obtainWriteLock(query.getBucketId());
         for (NoSQLEntity<T> entity : query.getEntities()) {
-            helper.saveEntity(entity);
+            dataStore.saveEntity(entity);
         }
         releaseWriteLock(query.getBucketId());
     }
 
-    private <T> void delete(NoSQLQuery<T> query, SimpleNoSQLDBHelper helper) {
+    private <T> void delete(NoSQLQuery<T> query, DataStore dataStore) {
         String bucket = query.getBucketId();
         
         obtainWriteLock(bucket);
         if (bucket != null && query.getEntityId() != null) {
-            helper.deleteEntity(bucket, query.getEntityId());
+            dataStore.deleteEntity(bucket, query.getEntityId());
         } else if (bucket != null) {
-            helper.deleteBucket(bucket);
+            dataStore.deleteBucket(bucket);
         }
         releaseWriteLock(bucket);
     }
 
-    private <T> void retrieve(NoSQLQuery<T> query, SimpleNoSQLDBHelper helper) {
+    private <T> void retrieve(NoSQLQuery<T> query, DataStore dataStore) {
         String bucket = query.getBucketId();
         
         obtainReadLock(bucket);
         if (bucket != null && query.getEntityId() != null) {
-            List<NoSQLEntity<T>> entityList = helper.getEntities(bucket, query.getEntityId(), query.getClazz(), query.getFilter());
+            List<NoSQLEntity<T>> entityList = dataStore.getEntities(bucket, query.getEntityId(), query.getClazz(), query.getFilter());
             sortAndDeliver(entityList, query);
         } else if (bucket != null) {
-            List<NoSQLEntity<T>> entityList = helper.getEntities(bucket, query.getClazz(), query.getFilter());
+            List<NoSQLEntity<T>> entityList = dataStore.getEntities(bucket, query.getClazz(), query.getFilter());
             sortAndDeliver(entityList, query);
         }
         releaseReadLock(bucket);

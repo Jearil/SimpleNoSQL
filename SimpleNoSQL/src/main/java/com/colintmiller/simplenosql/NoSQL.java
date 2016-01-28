@@ -4,6 +4,7 @@ package com.colintmiller.simplenosql;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import com.colintmiller.simplenosql.db.DataStoreType;
 import com.colintmiller.simplenosql.threading.DataDispatcher;
 import com.colintmiller.simplenosql.threading.QueryDelivery;
 
@@ -33,20 +34,22 @@ public class NoSQL
     private Context appContext;
     private DataSerializer singleSerializer;
     private DataDeserializer singleDeserializer;
+    private DataStoreType dataStoreType;
 
     private final BlockingQueue<NoSQLQuery<?>> queryQueue;
     private DataDispatcher[] dispatchers;
     private QueryDelivery delivery;
 
     private NoSQL(Context context, int numberOfThreads) {
-        this(context, numberOfThreads, new QueryDelivery(new Handler(Looper.getMainLooper())));
+        this(context, numberOfThreads, new QueryDelivery(new Handler(Looper.getMainLooper())), DataStoreType.SQLITE);
     }
 
-    private NoSQL(Context context, int numberOfThreads, QueryDelivery delivery) {
+    private NoSQL(Context context, int numberOfThreads, QueryDelivery delivery, DataStoreType type) {
         this.appContext = context.getApplicationContext();
         queryQueue = new LinkedBlockingQueue<NoSQLQuery<?>>();
         dispatchers = new DataDispatcher[numberOfThreads]; //TODO: Add a thread pool size
         this.delivery = delivery;
+        this.dataStoreType = type;
         start();
     }
 
@@ -105,7 +108,7 @@ public class NoSQL
         if (!deliveryQueues.containsKey(delivery)) {
             synchronized (NoSQL.class) {
                 if (!deliveryQueues.containsKey(delivery)) {
-                    deliveryQueues.put(delivery, new NoSQL(context, numberOfThreads, delivery));
+                    deliveryQueues.put(delivery, new NoSQL(context, numberOfThreads, delivery, DataStoreType.SQLITE));
                 }
             }
         }
@@ -161,7 +164,7 @@ public class NoSQL
         ConcurrentHashMap<String, ReadWriteLock> locks = new ConcurrentHashMap<String, ReadWriteLock>();
 
         for(int i = 0; i < dispatchers.length; i++) {
-            DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery, locks);
+            DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery, locks, dataStoreType);
             dispatchers[i] = dispatcher;
             dispatcher.start();
         }
@@ -178,7 +181,10 @@ public class NoSQL
         }
     }
 
-    private static <T> QueryBuilder<T> withUsing(Class<T> clazz, DataSerializer serializer, DataDeserializer deserializer, BlockingQueue<NoSQLQuery<?>> queue) {
+    private static <T> QueryBuilder<T> withUsing(Class<T> clazz,
+                                                 DataSerializer serializer,
+                                                 DataDeserializer deserializer,
+                                                 BlockingQueue<NoSQLQuery<?>> queue) {
         QueryBuilder<T> builder = new QueryBuilder<T>(clazz, queue);
         if (serializer != null) {
             builder.serializer(serializer);
