@@ -88,6 +88,11 @@ NoSQL.with(context).using(SampleBean.class)
     });
 ```
 
+Reactive Extensions
+-------------------
+
+[RxSimpleNoSQL](https://github.com/xmartlabs/RxSimpleNoSQL) provides an API in order to use reactive extensions for SimpleNoSQL.
+
 Development
 -----------
 This project is still very new and under active development. The API is in a wildly fluctuating state as I figure out
