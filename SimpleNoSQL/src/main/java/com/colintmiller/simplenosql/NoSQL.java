@@ -29,7 +29,7 @@ public class NoSQL
 {
     private static NoSQL singleton;
 
-    private static Map<QueryDelivery, NoSQL> deliveryQueues = new HashMap<QueryDelivery, NoSQL>();
+    private static Map<QueryDelivery, NoSQL> deliveryQueues = new HashMap<>();
 
     private Context appContext;
     private DataSerializer singleSerializer;
@@ -46,7 +46,7 @@ public class NoSQL
 
     private NoSQL(Context context, int numberOfThreads, QueryDelivery delivery, DataStoreType type) {
         this.appContext = context.getApplicationContext();
-        queryQueue = new LinkedBlockingQueue<NoSQLQuery<?>>();
+        queryQueue = new LinkedBlockingQueue<>();
         dispatchers = new DataDispatcher[numberOfThreads]; //TODO: Add a thread pool size
         this.delivery = delivery;
         this.dataStoreType = type;
@@ -161,7 +161,7 @@ public class NoSQL
      */
     public void start() {
         stop(); // in case there's already threads started.
-        ConcurrentHashMap<String, ReadWriteLock> locks = new ConcurrentHashMap<String, ReadWriteLock>();
+        ConcurrentHashMap<String, ReadWriteLock> locks = new ConcurrentHashMap<>();
 
         for(int i = 0; i < dispatchers.length; i++) {
             DataDispatcher dispatcher = new DataDispatcher(queryQueue, appContext, delivery, locks, dataStoreType);
@@ -185,7 +185,7 @@ public class NoSQL
                                                  DataSerializer serializer,
                                                  DataDeserializer deserializer,
                                                  BlockingQueue<NoSQLQuery<?>> queue) {
-        QueryBuilder<T> builder = new QueryBuilder<T>(clazz, queue);
+        QueryBuilder<T> builder = new QueryBuilder<>(clazz, queue);
         if (serializer != null) {
             builder.serializer(serializer);
         }

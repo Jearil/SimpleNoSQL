@@ -39,7 +39,7 @@ public class NoSQLQuery<T> implements CancellableOperation {
 
     public NoSQLQuery(Class<T> clazz) {
         this.clazz = clazz;
-        this.observers = new ArrayList<OperationObserver>();
+        this.observers = new ArrayList<>();
     }
 
     public void setDeserializer(DataDeserializer deserializer) {

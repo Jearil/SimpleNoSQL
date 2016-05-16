@@ -114,7 +114,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper implements DataStore {
     @Override
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, String entityId, Class<T> clazz, DataFilter<T> filter) {
         if (bucket == null || entityId == null) {
-            return new ArrayList<NoSQLEntity<T>>(0);
+            return new ArrayList<>(0);
         }
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=? AND " + EntityEntry.COLUMN_NAME_ENTITY_ID + "=?";
         String[] selectionArgs = {bucket, entityId};
@@ -125,7 +125,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper implements DataStore {
     @Override
     public <T> List<NoSQLEntity<T>> getEntities(String bucket, Class<T> clazz, DataFilter<T> filter) {
         if (bucket == null) {
-            return new ArrayList<NoSQLEntity<T>>(0);
+            return new ArrayList<>(0);
         }
         String selection = EntityEntry.COLUMN_NAME_BUCKET_ID + "=?";
         String[] selectionArgs = {bucket};
@@ -133,7 +133,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper implements DataStore {
     }
 
     private <T> List<NoSQLEntity<T>> getEntities(String selection, String[] selectionArgs, Class<T> clazz, DataFilter<T> filter) {
-        List<NoSQLEntity<T>> results = new ArrayList<NoSQLEntity<T>>();
+        List<NoSQLEntity<T>> results = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
 
         String[] columns = {EntityEntry.COLUMN_NAME_BUCKET_ID, EntityEntry.COLUMN_NAME_ENTITY_ID, EntityEntry.COLUMN_NAME_DATA};
@@ -145,7 +145,7 @@ public class SimpleNoSQLDBHelper extends SQLiteOpenHelper implements DataStore {
                 String entityId = cursor.getString(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_ENTITY_ID));
                 byte[] data = cursor.getBlob(cursor.getColumnIndex(EntityEntry.COLUMN_NAME_DATA));
 
-                NoSQLEntity<T> entity = new NoSQLEntity<T>(bucketId, entityId);
+                NoSQLEntity<T> entity = new NoSQLEntity<>(bucketId, entityId);
                 entity.setData(deserializer.deserialize(data, clazz));
                 if (filter != null && !filter.isIncluded(entity)) {
                     // skip this item, it's been filtered out.
