@@ -31,7 +31,7 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
 
     public void testSynchronousGet() throws Throwable {
         final CountDownLatch latch = new CountDownLatch(1);
-        final List<SampleBean> result = new ArrayList<>();
+        final List<SampleBean> result = new ArrayList<SampleBean>();
         assertEquals(0, result.size());
         NoSQL.with(context).using(SampleBean.class).bucketId("dne").retrieve(new RetrievalCallback<SampleBean>() {
             @Override
@@ -53,9 +53,9 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
             public void hasFinished() {
                 lock.countDown();
             }
-        }).save(new NoSQLEntity<>("dne", "1", item));
+        }).save(new NoSQLEntity<SampleBean>("dne", "1", item));
         lock.await();
-        SynchronousRetrieval<SampleBean> retrievalCallback = new SynchronousRetrieval<>();
+        SynchronousRetrieval<SampleBean> retrievalCallback = new SynchronousRetrieval<SampleBean>();
         NoSQL.with(context).using(SampleBean.class).bucketId("dne").retrieve(retrievalCallback);
         List<NoSQLEntity<SampleBean>> results = retrievalCallback.getSynchronousResults();
         assertEquals(1, results.size());
@@ -70,7 +70,7 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
     public void testSynchronousUIRetrieval() throws Throwable {
 
         final CountDownLatch lock = new CountDownLatch(1);
-        final List<NoSQLEntity<SampleBean>> results = new ArrayList<>();
+        final List<NoSQLEntity<SampleBean>> results = new ArrayList<NoSQLEntity<SampleBean>>();
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -88,9 +88,9 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
                             public void hasFinished() {
                                 saveLock.countDown();
                             }
-                        }).save(new NoSQLEntity<>("dne", "1", item));
+                        }).save(new NoSQLEntity<SampleBean>("dne", "1", item));
 
-                SynchronousRetrieval<SampleBean> retrievalCallback = new SynchronousRetrieval<>();
+                SynchronousRetrieval<SampleBean> retrievalCallback = new SynchronousRetrieval<SampleBean>();
                 saveLock.countDown();
 
                 NoSQL.with(context, 1, delivery).using(SampleBean.class).bucketId("dne").retrieve(retrievalCallback);

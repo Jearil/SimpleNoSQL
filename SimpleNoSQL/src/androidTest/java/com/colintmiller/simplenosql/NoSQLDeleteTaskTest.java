@@ -43,8 +43,8 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
     }
 
     public void testDeleteEntity() throws Throwable {
-        NoSQLEntity<SampleBean> entity = new NoSQLEntity<>("delete", "first");
-        NoSQLEntity<SampleBean> entity2 = new NoSQLEntity<>("delete", "second");
+        NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("delete", "first");
+        NoSQLEntity<SampleBean> entity2 = new NoSQLEntity<SampleBean>("delete", "second");
         SampleBean bean1 = new SampleBean();
         SampleBean bean2 = new SampleBean();
         bean1.setId(1);
@@ -52,7 +52,7 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
         entity.setData(bean1);
         entity2.setData(bean2);
 
-        final List<NoSQLEntity<SampleBean>> entities = new ArrayList<>(2);
+        final List<NoSQLEntity<SampleBean>> entities = new ArrayList<NoSQLEntity<SampleBean>>(2);
         entities.add(entity);
         entities.add(entity2);
 
@@ -95,9 +95,9 @@ public class NoSQLDeleteTaskTest extends ActivityUnitTestCase {
     }
 
     public void testDeleteBucket() throws Throwable {
-        final List<NoSQLEntity<SampleBean>> lots = new ArrayList<>(10);
+        final List<NoSQLEntity<SampleBean>> lots = new ArrayList<NoSQLEntity<SampleBean>>(10);
         for (int i = 0; i < 10; i++) {
-            NoSQLEntity<SampleBean> entity = new NoSQLEntity<>("delete", "id" + i);
+            NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("delete", "id" + i);
             SampleBean bean = new SampleBean();
             bean.setId(i);
             bean.setExists(i % 2 == 0);
