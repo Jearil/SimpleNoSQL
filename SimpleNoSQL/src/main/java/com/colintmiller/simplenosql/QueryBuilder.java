@@ -54,7 +54,7 @@ public class QueryBuilder<T> {
      * @param clazz related to this operation.
      */
     public QueryBuilder(Class<T> clazz, BlockingQueue<NoSQLQuery<?>> queue) {
-        this.query = new NoSQLQuery<T>(clazz);
+        this.query = new NoSQLQuery<>(clazz);
         this.dispatchQueue = queue;
     }
 
@@ -223,7 +223,7 @@ public class QueryBuilder<T> {
      * @return a CancellableOperation for canceling the in-flight request before it's finished.
      */
     public CancellableOperation save(NoSQLEntity<T> entity) {
-        List<NoSQLEntity<T>> entities = new ArrayList<NoSQLEntity<T>>(1);
+        List<NoSQLEntity<T>> entities = new ArrayList<>(1);
         entities.add(entity);
         return save(entities);
     }

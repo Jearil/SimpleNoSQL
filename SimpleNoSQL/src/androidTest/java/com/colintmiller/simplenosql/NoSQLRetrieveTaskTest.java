@@ -22,7 +22,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
     public NoSQLRetrieveTaskTest() {
         super(Activity.class);
         bucketId = "retrieveTests";
-        results = new ArrayList<NoSQLEntity<SampleBean>>();
+        results = new ArrayList<>();
     }
 
     private RetrievalCallback<SampleBean> getCallback() {
@@ -149,10 +149,10 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
 
     public void testGettingOrderedResults() throws Throwable {
 
-        List<NoSQLEntity<SampleBean>> entities = new ArrayList<NoSQLEntity<SampleBean>>(5);
+        List<NoSQLEntity<SampleBean>> entities = new ArrayList<>(5);
 
         for (int i = 0; i < 5; i++) {
-            NoSQLEntity<SampleBean> data = new NoSQLEntity<SampleBean>(bucketId, "entity" + i);
+            NoSQLEntity<SampleBean> data = new NoSQLEntity<>(bucketId, "entity" + i);
             SampleBean bean = new SampleBean();
             bean.setId(i + 1);
             data.setData(bean);
@@ -254,7 +254,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         oldBean.setField1("Developer");
         oldBean.setId(1);
 
-        final NoSQLEntity<OldSampleBean> oldEntity = new NoSQLEntity<OldSampleBean>("oldbucket", "old");
+        final NoSQLEntity<OldSampleBean> oldEntity = new NoSQLEntity<>("oldbucket", "old");
         oldEntity.setData(oldBean);
 
         runTestOnUiThread(new Runnable() {
@@ -298,7 +298,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
 
     @SuppressWarnings("unchecked")
     private void saveBean(final NoSQLEntity... bean) throws Throwable {
-        final List<NoSQLEntity<SampleBean>> beans = new ArrayList<NoSQLEntity<SampleBean>>(bean.length);
+        final List<NoSQLEntity<SampleBean>> beans = new ArrayList<>(bean.length);
 
         for (NoSQLEntity<SampleBean> aBean : bean) {
             beans.add(aBean);
@@ -326,10 +326,10 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
     //TODO: Add a test for getting all entities of a bucket
 
     private NoSQLEntity<SampleBean> getTestEntry(String bucketId, String entityId) {
-        NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>(bucketId, entityId);
+        NoSQLEntity<SampleBean> entity = new NoSQLEntity<>(bucketId, entityId);
         SampleBean bean = new SampleBean();
         bean.setName("SimpleNoSQL");
-        List<String> ids = new ArrayList<String>(4);
+        List<String> ids = new ArrayList<>(4);
         for (int i = 0; i < 4; i++) {
             ids.add("ID" + i);
         }
