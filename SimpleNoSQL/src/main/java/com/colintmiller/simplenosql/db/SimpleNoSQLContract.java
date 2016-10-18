@@ -6,7 +6,7 @@ import android.provider.BaseColumns;
  * The basic contract for our DB's that SimpleNoSQL will use to store user data.
  */
 public class SimpleNoSQLContract {
-    public SimpleNoSQLContract() {}
+    private SimpleNoSQLContract() {}
 
     public static abstract class EntityEntry implements BaseColumns {
         public static final String TABLE_NAME = "simplenosql";
