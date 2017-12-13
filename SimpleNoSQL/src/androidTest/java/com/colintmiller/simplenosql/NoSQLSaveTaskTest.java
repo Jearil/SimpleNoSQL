@@ -34,7 +34,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
     }
 
     public void testSaveEntity() throws Throwable {
-        final NoSQLEntity<SampleBean> entity = new NoSQLEntity<>("test", "first");
+        final NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("test", "first");
         SampleBean data = new SampleBean();
         data.setName("SimpleNoSQL");
         data.setId(1);
@@ -64,9 +64,9 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
     }
 
     public void testSaveEntities() throws Throwable {
-        final List<NoSQLEntity<SampleBean>> allEntities = new ArrayList<>(3);
+        final List<NoSQLEntity<SampleBean>> allEntities = new ArrayList<NoSQLEntity<SampleBean>>(3);
         for(int i = 0; i < 3; i++) {
-            NoSQLEntity<SampleBean> entity = new NoSQLEntity<>("sample", "entity" + i);
+            NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("sample", "entity" + i);
             SampleBean data = new SampleBean();
             data.setId(i);
             data.setExists(i % 2 == 0);
@@ -99,7 +99,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         int counter = 0;
         while(cursor.moveToNext()) {
             byte[] data = cursor.getBlob(cursor.getColumnIndex(SimpleNoSQLContract.EntityEntry.COLUMN_NAME_DATA));
-            NoSQLEntity<SampleBean> bean = new NoSQLEntity<>("bucket", "id");
+            NoSQLEntity<SampleBean> bean = new NoSQLEntity<SampleBean>("bucket", "id");
             bean.setData(serialization.deserialize(data, SampleBean.class));
             assertEquals(counter, bean.getData().getId());
             assertEquals(counter % 2 == 0, bean.getData().isExists());
