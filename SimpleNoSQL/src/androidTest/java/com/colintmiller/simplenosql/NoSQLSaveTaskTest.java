@@ -1,38 +1,47 @@
 package com.colintmiller.simplenosql;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.test.ActivityUnitTestCase;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.colintmiller.simplenosql.db.SimpleNoSQLContract;
 import com.colintmiller.simplenosql.db.SimpleNoSQLDBHelper;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Tests for saving entities to the DB. This includes saving a single entity or saving multiple entities.
  */
-public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
+@RunWith(AndroidJUnit4.class)
+public class NoSQLSaveTaskTest {
     private GsonSerialization serialization;
     private CountDownLatch signal;
     private Context context;
 
     public NoSQLSaveTaskTest() {
-        super(Activity.class);
         serialization = new GsonSerialization();
     }
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
         signal = new CountDownLatch(1);
         this.context = getInstrumentation().getTargetContext();
     }
 
+    @Test
     public void testSaveEntity() throws Throwable {
         final NoSQLEntity<SampleBean> entity = new NoSQLEntity<SampleBean>("test", "first");
         SampleBean data = new SampleBean();
@@ -40,14 +49,10 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         data.setId(1);
         entity.setData(data);
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(entity);
-            }
-        });
+
         signal.await(3, TimeUnit.SECONDS);
 
         assertNotNull("Activity is null when it should not have been", getInstrumentation().getTargetContext());
@@ -63,6 +68,7 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
         assertEquals(cursor.getCount(), 1);
     }
 
+    @Test
     public void testSaveEntities() throws Throwable {
         final List<NoSQLEntity<SampleBean>> allEntities = new ArrayList<NoSQLEntity<SampleBean>>(3);
         for(int i = 0; i < 3; i++) {
@@ -74,14 +80,11 @@ public class NoSQLSaveTaskTest extends ActivityUnitTestCase<Activity> {
             allEntities.add(entity);
         }
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+
                 NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(allEntities);
-            }
-        });
+
 
         signal.await(2, TimeUnit.SECONDS);
 

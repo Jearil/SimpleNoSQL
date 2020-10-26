@@ -1,24 +1,29 @@
 package com.colintmiller.simplenosql;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import android.app.Activity;
-import android.test.ActivityUnitTestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 /**
  * Tests for NSQLEntity and it's various functions.
  */
-public class NoSQLEntityTest extends ActivityUnitTestCase {
+@RunWith(AndroidJUnit4.class)
+public class NoSQLEntityTest {
     private GsonSerialization serialization;
 
     public NoSQLEntityTest() {
-        super(Activity.class);
         serialization = new GsonSerialization();
     }
 
+    @Test
     public void testJsonConversion() {
         SampleBean testData = new SampleBean();
         testData.setName("Colin");
@@ -43,6 +48,7 @@ public class NoSQLEntityTest extends ActivityUnitTestCase {
         assertEquals(testData, waterData);
     }
 
+    @Test
     public void testUUID() {
         SampleBean testData = new SampleBean();
         testData.setName("Colin");

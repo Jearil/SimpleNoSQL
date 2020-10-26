@@ -1,26 +1,37 @@
 package com.colintmiller.simplenosql;
 
-import android.app.Activity;
 import android.content.Context;
-import android.test.ActivityUnitTestCase;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for the RetrieveTask for querying data from the DB. This includes querying a single entity or
  * an entire bucket.
  */
-public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
+@RunWith(AndroidJUnit4.class)
+public class NoSQLRetrieveTaskTest {
     private String bucketId;
     private CountDownLatch signal;
     private List<NoSQLEntity<SampleBean>> results;
     private Context context;
 
     public NoSQLRetrieveTaskTest() {
-        super(Activity.class);
         bucketId = "retrieveTests";
         results = new ArrayList<NoSQLEntity<SampleBean>>();
     }
@@ -35,27 +46,18 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         };
     }
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
         this.context = getInstrumentation().getTargetContext();
 
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    signal = TestUtils.cleanBucket(bucketId, context);
-                }
-            });
-        } catch (Throwable throwable) {
-            // an error happened
-            throw new Exception(throwable);
-        }
+        signal = TestUtils.cleanBucket(bucketId, context);
+
         signal.await(2, TimeUnit.SECONDS);
 
         signal = new CountDownLatch(1);
     }
 
+    @Test
     public void testRetrievalBuilder() throws Throwable {
         NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, "entity");
         SampleBean bean = new SampleBean();
@@ -64,19 +66,15 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
 
         saveBean(entity);
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 NoSQL.with(context).using(SampleBean.class)
                         .bucketId(bucketId)
                         .retrieve(getCallback());
-            }
-        });
 
         signal.await(2, TimeUnit.SECONDS);
         assertFalse("We should have results", results.isEmpty());
     }
 
+    @Test
     public void testGettingStoredData() throws Throwable {
         final String entityId = "entityId";
 
@@ -96,7 +94,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         NoSQLEntity<SampleBean> entity = getTestEntry(bucketId, entityId);
         saveBean(entity);
 
-        runTestOnUiThread(runnable);
+        runnable.run();
 
         signal.await(2, TimeUnit.SECONDS);
 
@@ -117,6 +115,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         }
     }
 
+    @Test
     public void testGettingFilteredResults() throws Throwable {
 
         NoSQLEntity<SampleBean> entity1 = getTestEntry(bucketId, "entity1");
@@ -131,15 +130,11 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             }
         };
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 NoSQL.with(context).using(SampleBean.class)
                         .bucketId(bucketId)
                         .filter(filter)
                         .retrieve(getCallback());
-            }
-        });
+
         signal.await(2, TimeUnit.SECONDS);
 
         assertNotNull("The list of entities should not be null", results);
@@ -147,6 +142,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         assertEquals("entity2", results.get(0).getId());
     }
 
+    @Test
     public void testGettingOrderedResults() throws Throwable {
 
         List<NoSQLEntity<SampleBean>> entities = new ArrayList<NoSQLEntity<SampleBean>>(5);
@@ -185,15 +181,10 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
             }
         };
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 NoSQL.with(context).using(SampleBean.class)
                         .bucketId(bucketId)
                         .orderBy(comparator)
                         .retrieve(getCallback());
-            }
-        });
 
         signal.await(2, TimeUnit.SECONDS);
 
@@ -206,41 +197,33 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         assertEquals(4, results.get(4).getData().getId());
     }
 
+    @Test
     public void testNoBucket() throws Throwable {
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+
                 NoSQL.with(context).using(SampleBean.class)
                         .retrieve(getCallback());
-            }
-        });
+
         signal.await(2, TimeUnit.SECONDS);
 
         assertTrue("Results should be empty", results.isEmpty());
     }
 
-
+    @Test
     public void testNoEntity() throws Throwable {
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+
                 NoSQL.with(context).using(SampleBean.class)
                         .addObserver(getObserver())
                         .save(new NoSQLEntity<SampleBean>("null", "nullitem"));
-            }
-        });
+
         signal.await(2, TimeUnit.SECONDS);
         signal = new CountDownLatch(1);
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+
                 NoSQL.with(context).using(SampleBean.class)
                         .bucketId("null")
                         .entityId("nullitem")
                         .retrieve(getCallback());
-            }
-        });
+
         signal.await(2, TimeUnit.SECONDS);
 
         assertFalse("Results should not be empty with a null entry", results.isEmpty());
@@ -248,6 +231,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
 
     }
 
+    @Test
     public void testOldData() throws Throwable {
         OldSampleBean oldBean = new OldSampleBean();
         oldBean.setName("Colin");
@@ -257,26 +241,19 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         final NoSQLEntity<OldSampleBean> oldEntity = new NoSQLEntity<OldSampleBean>("oldbucket", "old");
         oldEntity.setData(oldBean);
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+
                 NoSQL.with(context).using(OldSampleBean.class)
                         .addObserver(getObserver())
                         .save(oldEntity);
-            }
-        });
+
         signal.await(2, TimeUnit.SECONDS);
         signal = new CountDownLatch(1);
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 NoSQL.with(context).using(SampleBean.class)
                         .bucketId("oldbucket")
                         .entityId("old")
                         .retrieve(getCallback());
-            }
-        });
+
         signal.await(2, TimeUnit.SECONDS);
 
         assertFalse("Should have gotten results", results.isEmpty());
@@ -305,9 +282,7 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
         }
 
         final CountDownLatch saveLatch = new CountDownLatch(1);
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
+
                 NoSQL.with(context).using(SampleBean.class)
                         .addObserver(new OperationObserver() {
 
@@ -317,8 +292,6 @@ public class NoSQLRetrieveTaskTest extends ActivityUnitTestCase {
                             }
                         })
                         .save(beans);
-            }
-        });
 
         saveLatch.await(3, TimeUnit.SECONDS);
     }

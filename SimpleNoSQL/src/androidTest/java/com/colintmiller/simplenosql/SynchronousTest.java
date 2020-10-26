@@ -1,34 +1,39 @@
 package com.colintmiller.simplenosql;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.test.ActivityUnitTestCase;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.colintmiller.simplenosql.threading.QueryDelivery;
 import com.colintmiller.simplenosql.toolbox.SynchronousRetrieval;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+import static org.junit.Assert.assertEquals;
+
 /**
  * Created by cmiller on 10/21/14.
  */
-public class SynchronousTest extends ActivityUnitTestCase<Activity> {
+@RunWith(AndroidJUnit4.class)
+public class SynchronousTest {
 
     private Context context;
 
-    public SynchronousTest() {
-        super(Activity.class);
-    }
-
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
         this.context = getInstrumentation().getTargetContext();
     }
 
+    @Test
     public void testSynchronousGet() throws Throwable {
         final CountDownLatch latch = new CountDownLatch(1);
         final List<SampleBean> result = new ArrayList<SampleBean>();
@@ -44,6 +49,7 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
         assertEquals(1, result.size());
     }
 
+    @Test
     public void testSynchronousRetrieval() throws Throwable {
         SampleBean item = new SampleBean();
         item.setName("item");
@@ -67,14 +73,12 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
      *
      * @throws Throwable if something goes horribly wrong
      */
+    @Test
     public void testSynchronousUIRetrieval() throws Throwable {
 
         final CountDownLatch lock = new CountDownLatch(1);
         final List<NoSQLEntity<SampleBean>> results = new ArrayList<NoSQLEntity<SampleBean>>();
 
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
                 final CountDownLatch saveLock = new CountDownLatch(1);
                 SampleBean item = new SampleBean();
                 item.setName("item");
@@ -97,8 +101,7 @@ public class SynchronousTest extends ActivityUnitTestCase<Activity> {
                 results.addAll(retrievalCallback.getSynchronousResults());
 
                 lock.countDown();
-            }
-        });
+
 
         lock.await();
         assertEquals(1, results.size());

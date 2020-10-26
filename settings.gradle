@@ -1,1 +1,2 @@
 include ':SimpleNoSQL'
+rootProject.name = "SimpleNoSQL"
