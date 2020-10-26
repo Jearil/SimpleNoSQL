@@ -28,31 +28,30 @@ android {
     }
 }
 
-//
-//android.libraryVariants.all { variant ->
-//    def name = variant.buildType.name
-//    if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
-//        return; // Skip debug builds.
-//    }
-//    def task = project.tasks.create "_jar${name.capitalize()}", Jar
-//    task.dependsOn variant.javaCompile
-//    task.from variant.javaCompile.destinationDir
-//    print variant.javaCompile.destinationDir.toString()
-//    artifacts.add('archives', task);
-//}
-//
-//android.libraryVariants.all { variant ->
-//    task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
-//        description "Generates Javadoc for $variant.name."
-//        source = variant.javaCompile.source
-//        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-//        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-//        options.links("http://docs.oracle.com/javase/7/docs/api/");
-//        options.links("http://d.android.com/reference/");
-//        exclude '**/BuildConfig.java'
-//        exclude '**/R.java'
-//    }
-//}
+// jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.sourceFiles
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
+}
+
+// build a jar with javadoc
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
 
 dependencies {
     api 'com.google.code.gson:gson:2.8.5'
