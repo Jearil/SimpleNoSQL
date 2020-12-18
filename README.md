@@ -26,7 +26,7 @@ NoSQL.with(context).using(SampleBean.class)
     .bucketId("bucket")
     .entityId("entityId")
     .retrieve(new RetrievalCallback<SampleBean>() {
-    public void retrieveResults(List<NoSQLEntity<SampleBean> entities) {
+    public void retrieveResults(List<NoSQLEntity<SampleBean>> entities) {
         // Display results or something 
         SampleBean firstBean = entities.get(0).getData(); // always check length of a list first...
     }   
